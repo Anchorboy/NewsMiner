@@ -32,8 +32,8 @@ class Clustering():
                                's' + str(self.__sim_thres) + 'ms' + str(self.__merge_sim_thres) + 'sub' + str(
                                    self.__subevent_sim_thres) + 'dim' + str(self.__dim))
 
-    def update_count(self):
-        self.__cluster_count += 1
+    # def update_count(self):
+    #     self.__cluster_count += 1
 
     def __load_model(self, class_file):
         """
@@ -399,4 +399,4 @@ class Clustering():
         paras.write("Clusters = " + str(cluster_num) + "\n")
         paras.close()
 
-        self.update_count()
+        # self.update_count()
