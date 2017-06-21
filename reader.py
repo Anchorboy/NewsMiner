@@ -1,7 +1,7 @@
 #! /usr/bin/python
 # -*- coding:utf-8 -*-
 import json
-from header import *
+import header
 import pymongo
 from datetime import *
 import time
@@ -30,7 +30,10 @@ class Reader():
     def remove_mongoDB(self):
         pass
 
-    def insert_mongoDB(self, news):
+    def insert_mongoDB(self, item):
+        pass
+
+    def save_mongoDB(self, item):
         pass
 
     def query_mongoDB_by_time(self, start_time, end_time):
@@ -66,8 +69,12 @@ class NewsReader(Reader):
         for i in result:
             print i
 
-    def insert_mongoDB(self, news):
-        result = self.news_collection.insert(news)
+    def insert_mongoDB(self, item):
+        result = self.news_collection.insert(item)
+        return result
+
+    def save_mongoDB(self, item):
+        result = self.news_collection.save(item)
         return result
 
     def query_mongoDB_by_time(self, start_time, end_time):
@@ -118,8 +125,12 @@ class EventReader(Reader):
         for i in result:
             print i
 
-    def insert_mongoDB(self, news):
-        result = self.event_collection.insert(news)
+    def insert_mongoDB(self, item):
+        result = self.event_collection.insert(item)
+        return result
+
+    def save_mongoDB(self, item):
+        result = self.event_collection.save(item)
         return result
 
     def create_event_id(self, current_time):
