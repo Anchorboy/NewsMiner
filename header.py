@@ -1,7 +1,5 @@
 # -*- coding:utf-8 -*-
-
-class Header():
-    __news__ = {
+__news__ = {
         # /*NES数据源里包括的信息，部分信息的名称、数据格式可能不统一，需要转换*/
         "_id": "",
         "url": "",
@@ -19,6 +17,7 @@ class Header():
         "seggedTitle": "",
         "seggedContent": "",
         "stemContent": "",
+        "lowerContent": "",
 
         # /*关键词抽取*/
         "keywords": [{"word": "理财", "score": 0.66}, {"word": "互联网", "score": 0.62}],
@@ -41,8 +40,7 @@ class Header():
         # /*入库时间*/
         "crawlTime": "2017-04-19 17:00:00"
     }
-
-    __event__ = {
+__event__ = {
         # /*基本信息*/
         "_id": "",
         "label": "雾霾治理",
@@ -95,3 +93,9 @@ class Header():
 
         # /*实体关系（暂不考虑）*/
     }
+
+def get_news_json():
+    return __news__.copy()
+
+def get_event_json():
+    return __event__.copy()

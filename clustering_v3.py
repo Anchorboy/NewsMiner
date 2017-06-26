@@ -3,7 +3,9 @@ import os
 import sys
 import json
 import numpy as np
-from header import *
+from header import get_event_json
+from time import sleep
+from tqdm import tqdm
 from reader import *
 
 class Clustering():
@@ -22,18 +24,16 @@ class Clustering():
         self.__news_count = 0
         self.__cluster_count = 0
         self.__event_count = 0
+        self.__single_count = 0
         self.__news_reader = news_reader
         self.__event_reader = event_reader
         self.__start = time.time()
-        self.n_eid = ""
+        self.__date = ""
         self.__start_datetime = str(datetime.fromtimestamp(int(self.__start)))
         current_base = os.path.abspath('.')
         self.outbase = os.path.join(current_base, "Output",
                                's' + str(self.__sim_thres) + 'ms' + str(self.__merge_sim_thres) + 'sub' + str(
                                    self.__subevent_sim_thres) + 'dim' + str(self.__dim))
-
-    # def update_count(self):
-    #     self.__cluster_count += 1
 
     def __load_model(self, class_file):
         """
@@ -60,6 +60,9 @@ class Clustering():
         id_matrix = np.eye(dim)
         vectors = list()
 
+        self.__news_count = news_list.count()
+        pbar = tqdm(total=self.__news_count)
+        pb = 0
         for news in news_list:
             news_id = news['_id']
             news_stem = news['stemContent'].split()
@@ -77,8 +80,11 @@ class Clustering():
                 if word_count != 0:
                     vector /= word_count
                 vectors.append((news_id, vector))
-                self.__news_count += 1
 
+            pb += 1
+            if pb % 10 == 0:
+                pbar.update(10)
+        pbar.close()
         return vectors
 
     def _cal_similarity(self, vec1, vec2):
@@ -98,7 +104,7 @@ class Clustering():
         """
         return datetime.fromtimestamp(t)
 
-    def online_clustering(self, vectors, sim_thres):
+    def online_clustering(self, vectors, sim_thres, mode, father_event_id=""):
         """
         對輸入的vectors做online clustering聚類
         :param vectors: 全部文檔向量, list [ tuple news ( _id, vector ), ... , ]
@@ -111,6 +117,12 @@ class Clustering():
         clusters_id = {}
         centroids = {}
 
+        has_father_event = False
+        if mode == "split":
+            has_father_event = True
+
+        pbar = tqdm(total=len(vectors))
+        pb = 0
         for x in vectors:
             vid = x[0]
             vec = x[1]
@@ -126,7 +138,11 @@ class Clustering():
 
             # 最大相似度小於相似度閾值, 產生新事件
             if max_similarity[1] < sim_thres:
-                key = self.n_eid + "E" + str(self.__event_count)
+                if has_father_event:
+                    key = father_event_id
+                    has_father_event = False
+                else:
+                    key = self.__date + "E" + str(self.__event_count)
                 clusters_vec[key] = np.array([vec])
                 clusters_id[key] = [vid]
                 centroids[key] = np.array(vec)
@@ -137,10 +153,19 @@ class Clustering():
                 clusters_id[bestmukey].append(vid)
                 centroids[bestmukey] = np.mean(clusters_vec[bestmukey], axis=0)
 
+            pb += 1
+            if pb % 10 == 0:
+                pbar.update(10)
+        pbar.close()
         return clusters_vec, clusters_id, centroids
 
-    def read_events(self, current_time):
-        result = self.__event_reader.query_recent_events(current_time)
+    def read_events(self, ts):
+        """
+
+        :param ts: time stamp float
+        :return:
+        """
+        result = self.__event_reader.query_recent_events(ts=ts)
         self.__clusters_vec = {}
         self.__clusters_id = {}
         self.__centroids = {}
@@ -167,15 +192,15 @@ class Clustering():
             # news_all.append(news_in_event)
         return event_count
 
-    def online_clustering_merge(self, current_time, result):
+    def online_clustering_merge(self, t, result):
         """
         將完成聚類的新聞合併到原有的事件中
+        :param t: string 2017-6-26 17:00:00
         :param clusters_vec: dict
         :param clusters_id: dict
         :param centroids: dict
         :return:
         """
-        self.n_eid = self.__event_reader.create_event_id(current_time=current_time)
         clusters_vec, clusters_id, centroids = result
         if not self.__clusters_vec and not self.__clusters_id and not self.__centroids:
             self.__clusters_vec = clusters_vec
@@ -194,7 +219,7 @@ class Clustering():
 
                 # only update cluster, cluster_id
                 if max_similarity[1] < self.__merge_sim_thres:
-                    eid_new = self.n_eid + "E" + str(self.__event_count)    # 20170620170000E0
+                    eid_new = self.__date + "E" + str(self.__event_count)    # 20170620170000E0
                     self.__clusters_vec[eid_new] = np.array(cluster_vec)
                     self.__clusters_id[eid_new] = cluster_id
                     self.__event_count += 1
@@ -218,12 +243,12 @@ class Clustering():
         clusters_id = self.__clusters_id[event_id]
 
         vectors = [ (clusters_id[i[0]], i[1]) for i in enumerate(event_vecs) ]
-        n_clusters_vec, n_clusters_id, n_centroids = self.online_clustering(vectors=vectors, sim_thres=self.__subevent_sim_thres)
+        n_clusters_vec, n_clusters_id, n_centroids = self.online_clustering(vectors=vectors, sim_thres=self.__subevent_sim_thres, mode='split', father_event_id=event_id)
 
         # replace the original cluster info with 1st newly generated cluster info
-        self.__clusters_vec[event_id] = n_clusters_vec[0]
-        self.__clusters_id[event_id] = n_clusters_id[0]
-        self.__centroids[event_id] = n_centroids[0]
+        self.__clusters_vec[event_id] = n_clusters_vec[event_id]
+        self.__clusters_id[event_id] = n_clusters_id[event_id]
+        self.__centroids[event_id] = n_centroids[event_id]
 
         outbase = self.outbase
         if not os.path.exists(outbase):
@@ -249,9 +274,9 @@ class Clustering():
                     out.write("Title: " + news['title'] + " Time: " + news['crawlTime'] + " Content: " + news['content'] + "\n")
         out.close()
 
-        n_clusters_vec.pop(0)
-        n_clusters_id.pop(0)
-        n_centroids.pop(0)
+        n_clusters_vec.pop(event_id)
+        n_clusters_id.pop(event_id)
+        n_centroids.pop(event_id)
 
         return (n_clusters_vec, n_clusters_id, n_centroids)
 
@@ -278,23 +303,6 @@ class Clustering():
         # mse_out.close()
         return clusters_vec, clusters_id, centroids
 
-    # def merge_split_event(self, result):
-    #     clusters_vec, clusters_id, centroids = result
-    #     n_clusters_vec = {}
-    #     n_clusters_id = {}
-    #     n_centroids = {}
-    #
-    #     for key in clusters_vec.iterkeys():
-    #         eid_new = self.n_eid + "E" + str(self.__event_count)  # 20170620170000E0
-    #         n_clusters_vec[eid_new] = clusters_vec[key]
-    #         n_clusters_id[eid_new] = clusters_id[key]
-    #         n_centroids[eid_new] = centroids[key]
-    #         self.__event_count += 1
-    #
-    #     self.__clusters_vec.update(n_clusters_vec)
-    #     self.__clusters_id.update(n_clusters_id)
-    #     self.__centroids.update(n_centroids)
-
     def rearrange_cluster(self):
         event_id = sorted(((i, self.__clusters_id[i]) for i in xrange(len(self.__clusters_id))), key=lambda v:len(v[1]), reverse=True)
 
@@ -314,89 +322,97 @@ class Clustering():
     def clustering_news(self, news_list):
         print "vectorize"
         vectors = self.vectorize(news_list=news_list)
-        print "time = ", time.time() - self.__start
+        # print "time = ", time.time() - self.__start
         print
 
         print "clustering"
-        clusters_vec, clusters_id, centroids = self.online_clustering(vectors=vectors, sim_thres=self.__sim_thres)
+        clusters_vec, clusters_id, centroids = self.online_clustering(vectors=vectors, sim_thres=self.__sim_thres, mode='clustering')
         print "cluster = ", len(clusters_id)
-        print "time = ", time.time() - self.__start
-        print
+        # print "time = ", time.time() - self.__start
 
         return (clusters_vec, clusters_id, centroids)
 
-    def merge_events(self, current_time, result):
+    def merge_events(self, time_info, result):
+        (start_time_ts, start_time_t), _ = time_info
         # clusters_vec, clusters_id, centroids = result
         print "read events"
-        event_num = self.read_events(current_time=current_time)
+        event_num = self.read_events(ts=start_time_ts)
         print "total event = ", event_num
-        print "time = ", time.time() - self.__start
-        print
+        # print "time = ", time.time() - self.__start
 
         print "merge"
         print "previous cluster = ", len(self.__clusters_id)
-        self.online_clustering_merge(current_time=current_time, result=result)
+        self.online_clustering_merge(t=start_time_t, result=result)
         print "merged cluster = ", len(self.__clusters_id)
-        print "time = ", time.time() - self.__start
-        print
+        # print "time = ", time.time() - self.__start
 
-    def reevaluate(self, current_time):
+    def reevaluate(self, time_info):
+        _, (end_time_ts, end_time_t) = time_info
         print "re-evaluate centroids"
         print "previous cluster = ", len(self.__clusters_id)
         result = self.reevalute_centroids()
-        print "time = ", time.time() - self.__start
-        print
+        # print "time = ", time.time() - self.__start
 
         print "merge split event"
-        self.online_clustering_merge(current_time=current_time, result=result)
+        self.online_clustering_merge(t=end_time_t, result=result)
         print "re-evaluated cluster = ", len(self.__clusters_id)
-        print "time = ", time.time() - self.__start
-        print "--------------------------------------------"
-
-        # print "re-arange clusters"
-        # self.rearrange_cluster()
         # print "time = ", time.time() - self.__start
-        # print
+        print "--------------------------------------------"
 
     def write_news(self):
         outbase = self.outbase
         if not os.path.exists(outbase):
             os.mkdir(outbase)
 
-        single_count = 0
-        total_news_count = 0
-        out = open(os.path.join(outbase, str(self.n_eid)), "w")
+        out = open(os.path.join(outbase, str(self.__date)), "w")
         id_out = open(os.path.join(outbase, "cid"), "w")
         for key in self.__clusters_id:
             cluster = self.__clusters_id[key]
-            total_news_count += len(cluster)
             out.write("Cluster " + str(key) + " num = " + str(len(cluster)) + "\n")
             id_out.write(json.dumps(cluster) + "\n")
             if len(cluster) == 1:
-                single_count += 1
+                self.__single_count += 1
             for news_id in cluster:
                 result = self.__news_reader.query_mongoDB_by_item({"_id":news_id})
                 for news in result:
                     out.write("Title: " + news['title'] + " Time: " + news['crawlTime'] + " Content: " + news['content'] + "\n")
+
         out.close()
         id_out.close()
 
-        self.write_paras(single_count=single_count, cluster_num=len(self.__clusters_id))
-
-    def write_paras(self, single_count, cluster_num):
+    def write_log(self, time_info):
+        (start_time_ts, start_time_t), (end_time_ts, end_time_t) = time_info
         outbase = self.outbase
         if not os.path.exists(outbase):
             os.mkdir(outbase)
 
-        paras = open(os.path.join(outbase, "paras"+str(self.__cluster_count)), "w")
+        paras = open(os.path.join(outbase, "log"+str(self.__date)), "w")
         paras.write("Time = " + str(time.time() - self.__start) + "\n")
+        paras.write("Start time: " + start_time_t + "\n")
+        paras.write("End time: " + end_time_t + "\n")
         paras.write("Similarity = " + str(self.__sim_thres) + "\n")
         paras.write("Merge similarity = " + str(self.__merge_sim_thres) + "\n")
         paras.write("Subevent similarity = " + str(self.__subevent_sim_thres) + "\n")
         paras.write("Mse thres = " + str(self.__mse_thres) + "\n")
         paras.write("Total news num = " + str(self.__news_count) + "\n")
-        paras.write("Single event = " + str(single_count) + "\n")
-        paras.write("Clusters = " + str(cluster_num) + "\n")
+        paras.write("Single event = " + str(self.__single_count) + "\n")
+        paras.write("Clusters = " + str(len(self.__clusters_id)) + "\n")
         paras.close()
 
-        # self.update_count()
+    def main(self, news_list, time_info):
+        """
+
+        :param news_list: 讀入時間段內全部新聞
+        :param time_info: (start_time, end_time) 的封裝
+        :param start_time: 開始時間 (start_time_ts, start_time_t) : (float, string)
+        :param end_time: 結束時間 (end_time_ts, end_time_t) : (float, string)
+        :return:
+        """
+        (start_time_ts, start_time_t), (end_time_ts, end_time_t) = time_info
+        self.__date = self.__event_reader.create_event_id(t=start_time_t)
+        result = self.clustering_news(news_list=news_list)
+        self.merge_events(time_info=time_info, result=result)
+        self.reevaluate(time_info=time_info)
+        # clustering.reevaluate(current_time=current_time_start_t)
+        self.write_news()
+        self.write_log(time_info=time_info)

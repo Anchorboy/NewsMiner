@@ -2,7 +2,7 @@ import os
 import re
 from datetime import *
 import time
-from header import *
+from header import get_news_json
 from pymongo import MongoClient
 from nltk.stem.porter import PorterStemmer
 
@@ -27,6 +27,7 @@ def preprocess(s):
     # preprocess here
     tokens = s.strip().split()
     stem_content = ""
+    lower_content = ""
     for token in tokens:
         match = re.match(pattern, token)
         # regular expression
@@ -34,14 +35,17 @@ def preprocess(s):
             # remove stop words
             if match.group().lower() not in stopwords:
                 # stemming
+                lower_token = match.group().lower()
+                lower_content += lower_token + " "
                 try:
-                    stem = porter_stemmer.stem(match.group().lower())
+                    stem = porter_stemmer.stem(lower_token)
                     stem_content += stem + " "
                 except IndexError:
                     print match.group()
-    return stem_content
+    return lower_content, stem_content
 
 def insert_news(input_base, collection):
+    count = 0
     for year_dir in os.listdir(input_base):
         print year_dir
         year_path = os.path.join(input_base, year_dir)
@@ -58,7 +62,8 @@ def insert_news(input_base, collection):
 
                 for news_file in os.listdir(dir):
                     filepath = os.path.join(dir, news_file)
-                    news = Header.__news__.copy()
+                    news_json = get_news_json()
+
                     duplicate = False
                     title = ""
                     with open(filepath, "r") as f:
@@ -67,36 +72,42 @@ def insert_news(input_base, collection):
                             attribute = l[0]
                             value = l[1]
                             if attribute == "id":
-                                news['_id'] = year_dir + month_dir + date_dir + "N" + str(count); count += 1
+                                news_json['_id'] = year_dir + month_dir + date_dir + "N" + str(count); count += 1
                             elif attribute == "URL":
-                                news['url'] = value
+                                news_json['url'] = value
                             elif attribute == "category":
-                                news['category'] = value
+                                news_json['category'] = value
                             elif attribute == "Content":
-                                news['content'] = value; news['stemContent'] = preprocess(title + " " + value)
+                                news_json['content'] = value; news_json['lowerContent'], news_json['stemContent'] = preprocess(title + " " + value)
                             elif attribute == "Journalist":
-                                news['publisher'] = value
+                                news_json['publisher'] = value
                             elif attribute == "Image":
-                                images = value.split(); news['image'] = images
+                                images = value.split(); news_json['image'] = images
                             elif attribute == "Title":
                                 result = collection.find_one({'title': value})
-                                news['title'] = value
+                                news_json['title'] = value
                                 title = value
                                 if result:
                                     duplicate = True
                                     break
-                    news['crawlTime'] = t
+                    news_json['crawlTime'] = t
                     if not duplicate:
-                        collection.insert(news)
+                        collection.insert(news_json)
+                        count += 1
+
+    print "insert", count, "news"
 
 if __name__ == "__main__":
-    client = MongoClient('localhost')
+    IP_PORT = "10.1.1.46:27017"
+    client = MongoClient("10.1.1.46:27017")
     database_name = "NES"
     collection_name = "news"
     db = client[database_name]
-    collection = db[collection_name]
+    news_collection = db[collection_name]
+
+    # print __news__
     # collection.remove({"crawlTime":{"$gt": "2016-10-01 00:00:00", "$lt": "2016-11-01 00:00:00"}})
 
-    # current_base = os.path.abspath('.')
-    # input_base = "D:/TestData/11-01/"
-    # insert_news(input_base, collection)
+    current_base = os.path.abspath('.')
+    input_base = "D:/TestData/news/"
+    insert_news(input_base, news_collection)

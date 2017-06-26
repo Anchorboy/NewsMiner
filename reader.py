@@ -1,8 +1,6 @@
 #! /usr/bin/python
 # -*- coding:utf-8 -*-
 import json
-import header
-import pymongo
 from datetime import *
 import time
 from pymongo import MongoClient
@@ -133,21 +131,21 @@ class EventReader(Reader):
         result = self.event_collection.save(item)
         return result
 
-    def create_event_id(self, current_time):
+    def create_event_id(self, t):
         """
 
-        :param current_time: 2016-06-20 17:00:00
+        :param t: 2016-06-20 17:00:00
         :return: eid: 20170620170000
         """
-        eid = current_time.replace('-', '')
+        eid = t.replace('-', '')
         eid = eid.replace(':', '')
         eid = eid.replace(' ', '')
         return eid
 
-    def query_recent_events(self, current_time):
-        last_time = int(Reader.time2time_stamp(self, current_time) - self.day_diff * self.window)
+    def query_recent_events(self, ts):
+        last_time = int(ts - self.day_diff * self.window)
         last_time = Reader.time_stamp2time(self, last_time)
-        return self.query_mongoDB_by_time(start_time=last_time, end_time=current_time)
+        return self.query_mongoDB_by_time(start_time=last_time, end_time=ts)
 
     def query_mongoDB_by_time(self, start_time, end_time):
         """
@@ -175,5 +173,6 @@ class EventReader(Reader):
 if __name__ == "__main__":
     # news_reader = NewsReader(uri='localhost')
     # news_list = news_reader.query_mongoDB_by_time(start_time="2016-11-20 16:00:00", end_time="2016-11-20 18:00:00")
-    event_reader = EventReader(uri='localhost')
+    IP_PORT = "10.1.1.46:27017"
+    event_reader = EventReader(uri=IP_PORT)
     event_reader.query_recent_events(current_time="2016-11-20 16:00:00")
