@@ -25,19 +25,22 @@ class Reader():
     def time_stamp2time(self, t):
         return str(datetime.fromtimestamp(t))
 
-    def remove_mongoDB(self):
+    def remove_collection(self):
         pass
 
-    def insert_mongoDB(self, item):
+    def insert(self, item):
         pass
 
-    def save_mongoDB(self, item):
+    def save(self, item):
         pass
 
-    def query_mongoDB_by_time(self, start_time, end_time):
+    def query_many_by_time(self, start_time, end_time):
         pass
 
-    def query_mongoDB_by_item(self, item):
+    def query_one_by_item(self, item):
+        pass
+
+    def query_many_by_item(self, item):
         pass
 
     def read_txt(self, filename):
@@ -59,7 +62,7 @@ class NewsReader(Reader):
         print self.db
         print self.news_collection
 
-    def remove_mongoDB(self):
+    def remove_collection(self):
         self.news_collection.remove()
 
     def test(self):
@@ -67,15 +70,15 @@ class NewsReader(Reader):
         for i in result:
             print i
 
-    def insert_mongoDB(self, item):
+    def insert(self, item):
         result = self.news_collection.insert(item)
         return result
 
-    def save_mongoDB(self, item):
+    def save(self, item):
         result = self.news_collection.save(item)
         return result
 
-    def query_mongoDB_by_time(self, start_time, end_time):
+    def query_many_by_time(self, start_time, end_time):
         """
         尋找mongoDB news collection中符合時間段內的新聞
         :param start_time: 開始時間 (上次查詢後最後時間)
@@ -87,13 +90,24 @@ class NewsReader(Reader):
         #     print i
         return result
 
-    def query_mongoDB_by_item(self, item):
+    def query_many_by_item(self, item):
         """
         根據提供的item尋找mongoDB news collection中符合的新聞
         :param item: 查詢的item條件, dict
         :return: result: 查詢結果
         """
         result = self.news_collection.find(item)
+        # for i in result:
+        #     print i
+        return result
+
+    def query_one_by_item(self, item):
+        """
+        根據提供的item尋找mongoDB news collection中符合的新聞
+        :param item: 查詢的item條件, dict
+        :return: result: 查詢結果
+        """
+        result = self.news_collection.find_one(item)
         # for i in result:
         #     print i
         return result
@@ -115,7 +129,7 @@ class EventReader(Reader):
         print self.db
         print self.event_collection
 
-    def remove_mongoDB(self):
+    def remove_collection(self):
         self.event_collection.remove()
 
     def test(self):
@@ -123,11 +137,11 @@ class EventReader(Reader):
         for i in result:
             print i
 
-    def insert_mongoDB(self, item):
+    def insert(self, item):
         result = self.event_collection.insert(item)
         return result
 
-    def save_mongoDB(self, item):
+    def save(self, item):
         result = self.event_collection.save(item)
         return result
 
@@ -142,12 +156,17 @@ class EventReader(Reader):
         eid = eid.replace(' ', '')
         return eid
 
-    def query_recent_events(self, ts):
+    def query_recent_events_by_time(self, t):
+        last_time = int(Reader.time2time_stamp(self, t) - self.day_diff * self.window)
+        last_time = Reader.time_stamp2time(self, last_time)
+        return self.query_many_by_time(start_time=last_time, end_time=t)
+
+    def query_recent_events_by_timestamp(self, ts):
         last_time = int(ts - self.day_diff * self.window)
         last_time = Reader.time_stamp2time(self, last_time)
-        return self.query_mongoDB_by_time(start_time=last_time, end_time=ts)
+        return self.query_many_by_time(start_time=last_time, end_time=ts)
 
-    def query_mongoDB_by_time(self, start_time, end_time):
+    def query_many_by_time(self, start_time, end_time):
         """
         尋找mongoDB event collection中符合時間段內的新聞
         :param start_time: 開始時間 (上次查詢後最後時間)
@@ -159,7 +178,7 @@ class EventReader(Reader):
         #     print i
         return result
 
-    def query_mongoDB_by_item(self, item):
+    def query_many_by_item(self, item):
         """
         根據提供的item尋找mongoDB news collection中符合的新聞
         :param item: 查詢的item條件, dict
@@ -170,9 +189,24 @@ class EventReader(Reader):
         #     print i
         return result
 
+    def query_one_by_item(self, item):
+        """
+        根據提供的item尋找mongoDB news collection中符合的新聞
+        :param item: 查詢的item條件, dict
+        :return: result: 查詢結果
+        """
+        result = self.event_collection.find_one(item)
+        # for i in result:
+        #     print i
+        return result
+
 if __name__ == "__main__":
     # news_reader = NewsReader(uri='localhost')
     # news_list = news_reader.query_mongoDB_by_time(start_time="2016-11-20 16:00:00", end_time="2016-11-20 18:00:00")
     IP_PORT = "10.1.1.46:27017"
     event_reader = EventReader(uri=IP_PORT)
-    event_reader.query_recent_events(current_time="2016-11-20 16:00:00")
+    # result = event_reader.query_recent_events_by_time(t="2016-07-30 16:00:00")
+    ts = event_reader.time2time_stamp(t="2016-07-27 16:00:00")
+    result = event_reader.query_recent_events_by_time("2016-07-28 16:00:00")
+    for i in result:
+        print i
