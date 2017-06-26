@@ -281,6 +281,22 @@ class Clustering():
         # mse_out.close()
         return clusters_vec, clusters_id, centroids
 
+    def rearrange_cluster(self):
+        # event_id = sorted(((i, self.__clusters_id[i]) for key in xrange(len(self.__clusters_id))), key=lambda v:len(v[1]), reverse=True)
+        event_id = sorted(self.__clusters_id.iteritems(), key=lambda v: len(v[1]), reverse=True)
+
+        # clusters_vec = []
+        clusters_id = []
+        # centroids = []
+        for i in event_id:
+            sort_id = i[0]
+            # clusters_vec.append(self.__clusters_vec[sort_id])
+            clusters_id.append(i)
+            # centroids.append(self.__centroids[sort_id])
+
+        return clusters_id
+
+
     def clustering_news(self, news_list):
         print "Vectorize"
         vectors = self.vectorize_mongolist(news_list=news_list)
@@ -294,8 +310,7 @@ class Clustering():
     def merge_events(self, time_info, result):
         (start_time_ts, start_time_t), _ = time_info
         print "Read events"
-        event_num = self.read_events(t=start_time_t)
-        print "total event = ", event_num
+        self.read_events(t=start_time_t)
 
         print "Merge"
         print "previous cluster = ", len(self.__clusters_id)
@@ -356,9 +371,10 @@ class Clustering():
 
         out = open(os.path.join(outbase, str(self.__date)), "w")
         id_out = open(os.path.join(outbase, "cid"), "w")
-        for key in self.__clusters_id:
-            cluster = self.__clusters_id[key]
-            out.write("Cluster " + str(key) + " num = " + str(len(cluster)) + "\n")
+        clusters_id = self.rearrange_cluster()
+
+        for event_id, cluster in clusters_id:
+            out.write("Cluster " + str(event_id) + " num = " + str(len(cluster)) + "\n")
             id_out.write(json.dumps(cluster) + "\n")
             if len(cluster) == 1:
                 self.__single_count += 1
@@ -386,7 +402,7 @@ class Clustering():
         paras.write("Mse thres = " + str(self.__mse_thres) + "\n")
         paras.write("Total news num = " + str(self.__news_count) + "\n")
         paras.write("Single event = " + str(self.__single_count) + "\n")
-        paras.write("Clusters = " + str(len(self.__clusters_id)) + "\n")
+        paras.write("Events = " + str(len(self.__clusters_id)) + "\n")
         paras.close()
 
     def output(self, time_info):
