@@ -28,10 +28,10 @@ class Reader():
     def remove_collection(self):
         pass
 
-    def insert(self, item):
+    def insert_item(self, item):
         pass
 
-    def save(self, item):
+    def save_item(self, item):
         pass
 
     def query_many_by_time(self, start_time, end_time):
@@ -65,16 +65,11 @@ class NewsReader(Reader):
     def remove_collection(self):
         self.news_collection.remove()
 
-    def test(self):
-        result = self.news_collection.find()
-        for i in result:
-            print i
-
-    def insert(self, item):
+    def insert_item(self, item):
         result = self.news_collection.insert(item)
         return result
 
-    def save(self, item):
+    def save_item(self, item):
         result = self.news_collection.save(item)
         return result
 
@@ -137,11 +132,11 @@ class EventReader(Reader):
         for i in result:
             print i
 
-    def insert(self, item):
+    def insert_item(self, item):
         result = self.event_collection.insert(item)
         return result
 
-    def save(self, item):
+    def save_item(self, item):
         result = self.event_collection.save(item)
         return result
 
@@ -207,6 +202,14 @@ if __name__ == "__main__":
     event_reader = EventReader(uri=IP_PORT)
     # result = event_reader.query_recent_events_by_time(t="2016-07-30 16:00:00")
     ts = event_reader.time2time_stamp(t="2016-07-27 16:00:00")
-    result = event_reader.query_recent_events_by_time("2016-07-28 16:00:00")
-    for i in result:
-        print i
+    # result = event_reader.query_recent_events_by_time("2016-07-31 16:00:00")
+    result = event_reader.query_many_by_time("2016-07-15 16:00:00", "2016-08-30 16:00:00")
+    a = [{'_id':5}, {'_id':6}, {'_id':7, 't':5}, {'_id': 7, 't':6}, {'_id': 7, 's':7}, {'_id': 7, 'qq':15}]
+    for i in a:
+        print event_reader.save_item(i)
+
+    for i in a:
+        print event_reader.query_one_by_item(i)
+    # print result.count()
+    # for i in result:
+    #     print i

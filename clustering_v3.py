@@ -5,22 +5,22 @@ from header import get_event_json
 from time import sleep
 from tqdm import tqdm
 from reader import *
-from function import load_model, cal_similarity, get_mse
+from function import load_word_model, cal_similarity, get_mse, vectorize_single_news
 
 class Clustering():
     def __init__(self, sim_thres, merge_sim_thres, subevent_sim_thres, dim, class_file, news_reader, event_reader):
+        load_word_model(class_file=class_file)
         self.__dim = dim
         self.__sim_thres = sim_thres
         self.__merge_sim_thres = merge_sim_thres
         self.__subevent_sim_thres = subevent_sim_thres
         self.__mse_thres = 5 * 1e-6
-        self.__word_model = load_model(class_file=class_file)
         self.__events = {}
         self.__clusters_vec = {}
         self.__clusters_id = {}
         self.__centroids = {}
         self.__son2father_event = {}
-        self.__news_len = 30
+        self.__min_news_len = 30
         self.__news_count = 0
         self.__cluster_count = 0
         self.__event_count = 0
@@ -29,46 +29,32 @@ class Clustering():
         self.__event_reader = event_reader
         self.__start = time.time()
         self.__date = ""
-        self.__start_datetime = str(datetime.fromtimestamp(int(self.__start)))
         current_base = os.path.abspath('.')
         self.outbase = os.path.join(current_base, "Output",
                                's' + str(self.__sim_thres) + 'ms' + str(self.__merge_sim_thres) + 'sub' + str(
                                    self.__subevent_sim_thres) + 'dim' + str(self.__dim))
 
-    def vectorize(self, news_list):
+    def vectorize_mongolist(self, news_list):
         """
         輸入一段新聞，並利用新聞中的stemContent將文檔向量化
         目前使用方法為每個詞的權重都為1，生成向量將除以所有詞總數
         :param news_list: 一段新聞, list [ dict news_info { news.json }, ... , ]
         :return: vectors: 根據給定的dim維度生成的全部文檔向量, list [ tuple news ( _id, vector ), ... , ]
         """
-        dim = self.__dim
-
-        id_matrix = np.eye(dim)
-        vectors = list()
-
         self.__news_count = news_list.count()
+        vectors = list()
+        # 進度條
         time.sleep(0.3)
         pbar = tqdm(total=self.__news_count, mininterval=0.5)
         pb = 0
-        for news in news_list:
-            news_id = news['_id']
-            news_stem = news['stemContent'].split()
-
-            if len(news_stem) > self.__news_len:
-                vector = np.zeros(dim)
-                word_count = 0
-                for word in news_stem:
-                    try:
-                        vector += id_matrix[int(self.__word_model[word])]
-                        word_count += 1
-                    except KeyError:
-                        pass
-
-                if word_count != 0:
-                    vector /= word_count
+        for news_dict in news_list:
+            news_id = news_dict['_id']
+            news_stem_content = news_dict['stemContent']
+            news_lower_content = news_dict['lowerContent']
+            news_len = len(news_stem_content)
+            if news_len > self.__min_news_len:
+                vector = vectorize_single_news(dim=self.__dim, news_dict=news_dict)
                 vectors.append((news_id, vector))
-
             pb += 1
             pbar.update(1)
             # if pb % 10 == 0:
@@ -82,9 +68,9 @@ class Clustering():
         對輸入的vectors做online clustering聚類
         :param vectors: 全部文檔向量, list [ tuple news ( _id, vector ), ... , ]
         :param sim_thres: 相似度閾值
-        :return: clusters: 向量聚類結果, list [ array cluster0 [ (vec0), ... , (vecN) ] , ... , ]
-        :return: centroids: 向量聚類中心, list [ cluster0 (vec0), ... , clusterN (vecN) ]
-        :return: clusters_id: 聚類新聞id, list [ list cluster0 [ (_id_0), ... , (_id_N) ], ... , ]
+        :return: clusters: 向量聚類結果, dict [ array cluster0 [ (vec0), ... , (vecN) ] , ... , ]
+        :return: centroids: 向量聚類中心, dict [ cluster0 (vec0), ... , clusterN (vecN) ]
+        :return: clusters_id: 聚類新聞id, dict [ list cluster0 [ (_id_0), ... , (_id_N) ], ... , ]
         """
         clusters_vec = {}
         clusters_id = {}
@@ -147,28 +133,32 @@ class Clustering():
         :return:
         """
         result = self.__event_reader.query_recent_events_by_time(t=t)
-        self.__clusters_vec = {}
-        self.__clusters_id = {}
-        self.__centroids = {}
 
         time.sleep(0.3)
         pbar = tqdm(total=result.count(), mininterval=0.5)
         event_count = 0
         # news_all = []
         for event in result:
-            event_id = event['id']
+            event_id = event['_id']
             self.__events[event_id] = event
 
-            news_in_event = []
+            news_vec_in_event = []
             news_id_in_event = []
-            for news in event['articles']:
-                news_id = news['id']
+
+            # 宣告在event_json裡面的news
+            for news_in_event in event['articles']:
+                news_id = news_in_event['id']
+
                 result = self.__news_reader.query_one_by_item({'_id':news_id})
                 if result:
-                    news_in_event.append(result)
-                news_id_in_event.append(news_id)
+                    news_stem_content = result['stemContent']
+                    news_lower_content = result['lowerContent']
+                    news_content_len = len(news_stem_content)
+                    if news_content_len > self.__min_news_len:
+                        news_vec_in_event.append(vectorize_single_news(dim=self.__dim, news_dict=result))
+                        news_id_in_event.append(news_id)
 
-            self.__clusters_vec[event_id] = self.vectorize(news_in_event)
+            self.__clusters_vec[event_id] = np.array(news_vec_in_event)
             self.__clusters_id[event_id] = news_id_in_event
             self.__centroids[event_id] = np.mean(self.__clusters_vec[event_id], axis=0)
             event_count += 1
@@ -241,7 +231,7 @@ class Clustering():
         if not os.path.exists(outbase):
             os.mkdir(outbase)
 
-        outbase = os.path.join(outbase, "Split"+str(self.__cluster_count))
+        outbase = os.path.join(outbase, "Split")
         if not os.path.exists(outbase):
             os.mkdir(outbase)
 
@@ -292,42 +282,34 @@ class Clustering():
         return clusters_vec, clusters_id, centroids
 
     def clustering_news(self, news_list):
-        print "vectorize"
-        vectors = self.vectorize(news_list=news_list)
-        # print "time = ", time.time() - self.__start
+        print "Vectorize"
+        vectors = self.vectorize_mongolist(news_list=news_list)
 
-        print "clustering"
+        print "Clustering"
         clusters_vec, clusters_id, centroids = self.online_clustering(vectors=vectors, sim_thres=self.__sim_thres, mode='clustering')
         print "cluster = ", len(clusters_id)
-        # print "time = ", time.time() - self.__start
 
         return (clusters_vec, clusters_id, centroids)
 
     def merge_events(self, time_info, result):
         (start_time_ts, start_time_t), _ = time_info
-        # clusters_vec, clusters_id, centroids = result
-        print "read events"
+        print "Read events"
         event_num = self.read_events(t=start_time_t)
         print "total event = ", event_num
-        # print "time = ", time.time() - self.__start
 
-        print "merge"
+        print "Merge"
         print "previous cluster = ", len(self.__clusters_id)
         self.online_clustering_merge(result=result)
         print "merged cluster = ", len(self.__clusters_id)
-        # print "time = ", time.time() - self.__start
 
     def reevaluate(self, time_info):
-        _, (end_time_ts, end_time_t) = time_info
-        print "re-evaluate centroids"
+        print "Re-evaluate centroids"
         print "previous cluster = ", len(self.__clusters_id)
         result = self.reevalute_centroids()
-        # print "time = ", time.time() - self.__start
 
-        print "merge split event"
+        print "Merge split event"
         self.online_clustering_merge(result=result)
         print "re-evaluated cluster = ", len(self.__clusters_id)
-        # print "time = ", time.time() - self.__start
 
     def write_event(self, t):
         """
@@ -350,16 +332,19 @@ class Clustering():
                 event_json = event_result
                 event_json['updated'] = t
 
+            event_json['_id'] = event_id
             article_count = event_json['count']
-            articles = event_json['articles']
+            articles = []
             for news_id in self.__clusters_id[event_id]:
-                news_result = self.__news_reader.query_one_by_item({"_id": news_id})
+                # news_result = self.__news_reader.query_one_by_item({"_id": news_id})
                 # 尋找news collection是否包含news_id的新聞
-                if news_result:
-                    articles.append(news_result)
-                    article_count += 1
+                # if news_result:
+                articles.append({"id": news_id})
+                article_count += 1
+            event_json['count'] = article_count
+            event_json['articles'] = articles
 
-            self.__event_reader.save(event_json)
+            self.__event_reader.save_item(event_json)
             pbar.update(1)
         pbar.close()
         time.sleep(0.3)
@@ -406,7 +391,7 @@ class Clustering():
 
     def output(self, time_info):
         _, (end_time_ts, end_time_t) = time_info
-        print "write event"
+        print "Write event"
         self.write_event(t=end_time_t)
         self.write_result()
         self.write_log(time_info=time_info)

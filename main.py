@@ -23,6 +23,7 @@ if __name__ == "__main__":
 
     news_reader = NewsReader(uri=IP_PORT)
     event_reader = EventReader(uri=IP_PORT)
+    event_reader.remove_collection()
     # clustering = Clustering(sim_thres=sim, merge_sim_thres=merge_sim, subevent_sim_thres=sub_sim, dim=dim,
     #                         class_file=str(dim) + ".txt", news_reader=news_reader, event_reader=event_reader)
     start_time_t = "2016-07-25 16:00:00"
