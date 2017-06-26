@@ -1,12 +1,11 @@
 # -*- coding:utf-8 -*-
 import os
-import sys
-import json
 import numpy as np
 from header import get_event_json
 from time import sleep
 from tqdm import tqdm
 from reader import *
+from function import load_model, cal_similarity, get_mse
 
 class Clustering():
     def __init__(self, sim_thres, merge_sim_thres, subevent_sim_thres, dim, class_file, news_reader, event_reader):
@@ -15,7 +14,7 @@ class Clustering():
         self.__merge_sim_thres = merge_sim_thres
         self.__subevent_sim_thres = subevent_sim_thres
         self.__mse_thres = 5 * 1e-6
-        self.__word_model = self.__load_model(class_file=class_file)
+        self.__word_model = load_model(class_file=class_file)
         self.__events = {}
         self.__clusters_vec = {}
         self.__clusters_id = {}
@@ -35,19 +34,6 @@ class Clustering():
                                's' + str(self.__sim_thres) + 'ms' + str(self.__merge_sim_thres) + 'sub' + str(
                                    self.__subevent_sim_thres) + 'dim' + str(self.__dim))
 
-    def __load_model(self, class_file):
-        """
-        輸入詞向量檔案，生成word2vec對詞聚類模型
-        :param class_file: 詞向量檔案
-        :return: model: 詞聚類模型, dict { word: class }
-        """
-        model = {}
-        class_file = open(class_file, "r")
-        for line in class_file.readlines():
-            w = line.strip().split()
-            model[w[0]] = int(w[1])
-        return model
-
     def vectorize(self, news_list):
         """
         輸入一段新聞，並利用新聞中的stemContent將文檔向量化
@@ -61,7 +47,8 @@ class Clustering():
         vectors = list()
 
         self.__news_count = news_list.count()
-        pbar = tqdm(total=self.__news_count)
+        time.sleep(0.3)
+        pbar = tqdm(total=self.__news_count, mininterval=0.5)
         pb = 0
         for news in news_list:
             news_id = news['_id']
@@ -82,27 +69,12 @@ class Clustering():
                 vectors.append((news_id, vector))
 
             pb += 1
-            if pb % 10 == 0:
-                pbar.update(10)
+            pbar.update(1)
+            # if pb % 10 == 0:
+            #     pbar.update(10)
         pbar.close()
+        time.sleep(0.3)
         return vectors
-
-    def _cal_similarity(self, vec1, vec2):
-        """
-        計算兩向量間的cosine similarity
-        :param vec1: 向量1
-        :param vec2: 向量2
-        :return: similarity: consine similarity
-        """
-        return np.dot(vec1, vec2) / (np.linalg.norm(vec1) * np.linalg.norm(vec2))
-
-    def _time_stamp2time(self, t):
-        """
-        轉換輸入的time_stamp為用於query的dateime格式
-        :param t: time_stamp
-        :return: datetime格式
-        """
-        return datetime.fromtimestamp(t)
 
     def online_clustering(self, vectors, sim_thres, mode, father_event_id=""):
         """
@@ -121,7 +93,8 @@ class Clustering():
         if mode == "split":
             has_father_event = True
 
-        pbar = tqdm(total=len(vectors))
+        time.sleep(0.3)
+        pbar = tqdm(total=len(vectors), mininterval=0.5)
         pb = 0
         for x in vectors:
             vid = x[0]
@@ -129,7 +102,7 @@ class Clustering():
 
             try:
                 # 新聞計算最相似的聚類中心，並回傳最大相似值 ( cluster_id, sim )
-                max_similarity = max([(key, self._cal_similarity(vec, centroids[key])) \
+                max_similarity = max([(key, cal_similarity(vec, centroids[key])) \
                                       for key in centroids], key=lambda t: t[1])
             except ValueError:
                 max_similarity = (0, 0)
@@ -138,15 +111,22 @@ class Clustering():
 
             # 最大相似度小於相似度閾值, 產生新事件
             if max_similarity[1] < sim_thres:
+                # 父事件
                 if has_father_event:
                     key = father_event_id
                     has_father_event = False
+                # 子事件
                 else:
                     key = self.__date + "E" + str(self.__event_count)
                 clusters_vec[key] = np.array([vec])
                 clusters_id[key] = [vid]
                 centroids[key] = np.array(vec)
                 self.__event_count += 1
+
+                self.__events[key] = get_event_json()
+                event = self.__events[key]
+                event['_id'] = key
+                # event['']
             # 最大相似度大於相似度閾值
             else:
                 clusters_vec[bestmukey] = np.vstack((clusters_vec[bestmukey], np.array(vec)))
@@ -154,9 +134,11 @@ class Clustering():
                 centroids[bestmukey] = np.mean(clusters_vec[bestmukey], axis=0)
 
             pb += 1
-            if pb % 10 == 0:
-                pbar.update(10)
+            pbar.update(1)
+            # if pb % 10 == 0:
+            #     pbar.update(10)
         pbar.close()
+        time.sleep(0.3)
         return clusters_vec, clusters_id, centroids
 
     def read_events(self, ts):
@@ -170,6 +152,8 @@ class Clustering():
         self.__clusters_id = {}
         self.__centroids = {}
 
+        time.sleep(0.3)
+        pbar = tqdm(total=result.count(), mininterval=0.5)
         event_count = 0
         # news_all = []
         for event in result:
@@ -190,7 +174,13 @@ class Clustering():
             self.__centroids[event_id] = np.mean(self.__clusters_vec[event_id], axis=0)
             event_count += 1
             # news_all.append(news_in_event)
+            pbar.update(1)
+        pbar.close()
+        time.sleep(0.3)
         return event_count
+
+    def write_event(self):
+        event_json = get_event_json()
 
     def online_clustering_merge(self, t, result):
         """
@@ -207,12 +197,14 @@ class Clustering():
             self.__clusters_id = clusters_id
             self.__centroids = centroids
         else:
+            time.sleep(0.3)
+            pbar = tqdm(total=len(centroids), mininterval=0.5)
             for event_id in centroids:
                 cluster_vec = clusters_vec[event_id]
                 cluster_id = clusters_id[event_id]
                 centroid = centroids[event_id]
 
-                max_similarity = max([(eid, self._cal_similarity(centroid, self.__centroids[eid])) \
+                max_similarity = max([(eid, cal_similarity(centroid, self.__centroids[eid])) \
                                           for eid in self.__centroids], key=lambda t: t[1])
 
                 bestmukey = max_similarity[0]
@@ -226,14 +218,9 @@ class Clustering():
                 else:
                     self.__clusters_vec[bestmukey] = np.vstack((self.__clusters_vec[bestmukey], cluster_vec))
                     self.__clusters_id[bestmukey].extend(cluster_id)
-
-    # get mean of square error
-    def get_cluster_mse(self, vecs):
-        rows, cols = vecs.shape
-        centroid = np.mean(vecs, axis=0)
-        centroid_all = np.tile(centroid, (rows, 1))
-        MSE = np.mean(np.square(vecs - centroid_all))
-        return MSE
+                pbar.update(1)
+            pbar.close()
+            time.sleep(0.3)
 
     # input = (cluster_id, [vecs]) // cluster info
     def split_cluster(self, cluster):
@@ -288,11 +275,13 @@ class Clustering():
         centroids = {}
 
         # mse_out = open(os.path.join(outbase, "mse"+str(self.__cluster_count)), "w")
+        time.sleep(0.3)
+        pbar = tqdm(total=len(self.__centroids), mininterval=1)
         for event_id in self.__clusters_vec:
             vecs = self.__clusters_vec[event_id]
             self.__centroids[event_id] += np.mean(vecs, axis=0)
             if len(vecs) > 1:
-                mse = self.get_cluster_mse(vecs)
+                mse = get_mse(vecs)
                 # mse_out.write("Cluster " + str(cid) + "\t" + str(mse) + "\n")
                 if mse > self.__mse_thres:
                     cluster = (event_id, vecs)
@@ -300,30 +289,16 @@ class Clustering():
                     clusters_vec.update(n_clusters_vec)
                     clusters_id.update(n_clusters_id)
                     centroids.update(n_centroids)
+            pbar.update(1)
+        pbar.close()
+        time.sleep(0.3)
         # mse_out.close()
         return clusters_vec, clusters_id, centroids
-
-    def rearrange_cluster(self):
-        event_id = sorted(((i, self.__clusters_id[i]) for i in xrange(len(self.__clusters_id))), key=lambda v:len(v[1]), reverse=True)
-
-        clusters_vec = []
-        clusters_id = []
-        centroids = []
-        for i in event_id:
-            sort_id = i[0]
-            clusters_vec.append(self.__clusters_vec[sort_id])
-            clusters_id.append(self.__clusters_id[sort_id])
-            centroids.append(self.__centroids[sort_id])
-
-        self.__clusters_vec = clusters_vec
-        self.__clusters_id = clusters_id
-        self.__centroids = centroids
 
     def clustering_news(self, news_list):
         print "vectorize"
         vectors = self.vectorize(news_list=news_list)
         # print "time = ", time.time() - self.__start
-        print
 
         print "clustering"
         clusters_vec, clusters_id, centroids = self.online_clustering(vectors=vectors, sim_thres=self.__sim_thres, mode='clustering')
@@ -414,5 +389,6 @@ class Clustering():
         self.merge_events(time_info=time_info, result=result)
         self.reevaluate(time_info=time_info)
         # clustering.reevaluate(current_time=current_time_start_t)
+        self.write_event()
         self.write_news()
         self.write_log(time_info=time_info)
