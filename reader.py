@@ -204,12 +204,18 @@ if __name__ == "__main__":
     ts = event_reader.time2time_stamp(t="2016-07-27 16:00:00")
     # result = event_reader.query_recent_events_by_time("2016-07-31 16:00:00")
     result = event_reader.query_many_by_time("2016-07-15 16:00:00", "2016-08-30 16:00:00")
-    a = [{'_id':5}, {'_id':6}, {'_id':7, 't':5}, {'_id': 7, 't':6}, {'_id': 7, 's':7}, {'_id': 7, 'qq':15}]
-    for i in a:
-        print event_reader.save_item(i)
+    # a = [{'_id':5}, {'_id':6}, {'_id':7, 't':5}, {'_id': 7, 't':6}, {'_id': 7, 's':7}, {'_id': 7, 'qq':15}]
+    # i = ['20160725160000E30', '20160727160000E893', '20160727160000E894']
+    # i = [u'20160725160000E30', u'20160725160000E30', u'20160731160000E2614', u'20160731160000E2618', u'20160731160000E2620', u'20160731160000E2623', u'20160731160000E2625', u'20160731160000E2627', u'20160731160000E2628', u'20160731160000E2629', u'20160731160000E2630', u'20160731160000E2632', u'20160731160000E2634', u'20160731160000E2635', u'20160731160000E2636']
+    i = [u'20160731160000E96', u'20160802160000E368', u'20160802160000E380', u'20160802160000E381', u'20160802160000E385', u'20160802160000E376', u'20160802160000E375', u'20160802160000E372', u'20160802160000E378']
+    for x in i:
+        # print x
+        print event_reader.query_one_by_item({'_id':x})
+    # for event in result:
+    #     if event['father'] != -1:
+    #         print "id", event['_id'], "father", event['father'], "childrens", event['childrens']
 
-    for i in a:
-        print event_reader.query_one_by_item(i)
+            # print event['childrens']
     # print result.count()
     # for i in result:
     #     print i

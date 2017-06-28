@@ -86,7 +86,7 @@ __event__ = {
         "who": [{"word": "", "score": 0.66}, {"word": "", "score": 0.62}],
 
         # /*事件层次关系*/
-        "childrens": [0, 1, 2],
+        "childrens": [],
         "father": -1,
 
         # /*事件相关性，降序排列*/

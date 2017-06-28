@@ -20,7 +20,8 @@ class Clustering():
         self.__clusters_vec = {}
         self.__clusters_id = {}
         self.__centroids = {}
-        self.__son2father_event = {}
+        self.__son2father_event = {} # single id: str
+        self.__father2son_event = {} # son set: set of str
         self.__min_news_len = 30
         self.__news_count = 0
         self.__cluster_count = 0
@@ -78,12 +79,15 @@ class Clustering():
         clusters_id = {}
         centroids = {}
 
+        time.sleep(0.3)
+        pbar = 0
+
         has_father_event = False
         if mode == "split":
             has_father_event = True
+        elif mode == "clustering":
+            pbar = tqdm(total=len(vectors), mininterval=0.5)
 
-        time.sleep(0.3)
-        pbar = tqdm(total=len(vectors), mininterval=0.5)
         pb = 0
         for x in vectors:
             vid = x[0]
@@ -114,6 +118,11 @@ class Clustering():
 
                 if father_event_id:
                     self.__son2father_event[key] = father_event_id
+                    if father_event_id in self.__father2son_event:
+                        self.__father2son_event[father_event_id].add(key)
+                    else:
+                        key_list = [key]
+                        self.__father2son_event[father_event_id] = set(key_list)
             # 最大相似度大於相似度閾值
             else:
                 clusters_vec[bestmukey] = np.vstack((clusters_vec[bestmukey], np.array(vec)))
@@ -121,10 +130,12 @@ class Clustering():
                 centroids[bestmukey] = np.mean(clusters_vec[bestmukey], axis=0)
 
             pb += 1
-            pbar.update(1)
+            if mode == 'clustering':
+                pbar.update(1)
             # if pb % 10 == 0:
             #     pbar.update(10)
-        pbar.close()
+        if mode == 'clustering':
+            pbar.close()
         time.sleep(0.3)
         return clusters_vec, clusters_id, centroids
 
@@ -139,7 +150,6 @@ class Clustering():
         time.sleep(0.3)
         pbar = tqdm(total=result.count(), mininterval=0.5)
         event_count = 0
-        # news_all = []
         for event in result:
             event_id = event['_id']
             self.__events[event_id] = event
@@ -161,11 +171,18 @@ class Clustering():
                         news_id_in_event.append(news_id)
                         self.__news[news_id] = result
 
+            # 讀取event_jon中的層次關係
+            childrens = event['childrens']
+            father = event['father']
+            if childrens:
+                self.__father2son_event[event_id] = set(childrens)
+            if father != -1:
+                self.__son2father_event[event_id] = father
+
             self.__clusters_vec[event_id] = np.array(news_vec_in_event)
             self.__clusters_id[event_id] = news_id_in_event
             self.__centroids[event_id] = np.mean(self.__clusters_vec[event_id], axis=0)
             event_count += 1
-            # news_all.append(news_in_event)
             pbar.update(1)
         pbar.close()
         time.sleep(0.3)
@@ -200,13 +217,29 @@ class Clustering():
 
                 # 只更新cluster_vec以及cluster_id
                 if max_similarity[1] < self.__merge_sim_thres:
-                    eid_new = self.__date + "E" + str(self.__event_count)    # 20170620170000E0
+                    # eid_new = self.__date + "E" + str(self.__event_count)    # 20170620170000E0
+                    # 記住此行, 修改merge時的id
+                    eid_new = event_id
                     self.__clusters_vec[eid_new] = np.array(cluster_vec)
                     self.__clusters_id[eid_new] = cluster_id
-                    self.__event_count += 1
+
+                    # self.__event_count += 1
                 else:
                     self.__clusters_vec[bestmukey] = np.vstack((self.__clusters_vec[bestmukey], cluster_vec))
                     self.__clusters_id[bestmukey].extend(cluster_id)
+
+                    # 之前曾經分裂過的event, 再次合併時必須將層次關係移除
+                    if event_id in self.__son2father_event:
+                        # self.__son2father_event[bestmukey] = self.__son2father_event[event_id]
+                        father_event_id = self.__son2father_event[event_id]
+                        if father_event_id in self.__father2son_event:
+                            self.__father2son_event[father_event_id].remove(event_id)
+                        self.__son2father_event.pop(event_id)
+
+                    if event_id in self.__father2son_event:
+                        self.__father2son_event.pop(event_id)
+
+                    # print event_id
                 pbar.update(1)
             pbar.close()
             time.sleep(0.3)
@@ -245,9 +278,7 @@ class Clustering():
             news_id_all = n_clusters_id[key]
             out.write("Cluster " + str(key) + " num = " + str(len(news_id_all)) + "\n")
             for news_id in news_id_all:
-                # result = self.__news_reader.query_one_by_item({"_id":news_id})
                 if news_id in self.__news:
-                # if result:
                     result = self.__news[news_id]
                     out.write("Title: " + result['title'] + " Time: " + result['crawlTime'] + " Content: " + result['content'] + "\n")
         out.close()
@@ -266,8 +297,8 @@ class Clustering():
         centroids = {}
 
         # mse_out = open(os.path.join(outbase, "mse"+str(self.__cluster_count)), "w")
-        # time.sleep(0.3)
-        # pbar = tqdm(total=len(self.__centroids), mininterval=1)
+        time.sleep(0.3)
+        pbar = tqdm(total=len(self.__centroids), mininterval=1)
         for event_id in self.__clusters_vec:
             vecs = self.__clusters_vec[event_id]
             self.__centroids[event_id] += np.mean(vecs, axis=0)
@@ -280,9 +311,9 @@ class Clustering():
                     clusters_vec.update(n_clusters_vec)
                     clusters_id.update(n_clusters_id)
                     centroids.update(n_centroids)
-        #     pbar.update(1)
-        # pbar.close()
-        # time.sleep(0.3)
+            pbar.update(1)
+        pbar.close()
+        time.sleep(0.3)
         # mse_out.close()
         return clusters_vec, clusters_id, centroids
 
@@ -300,7 +331,6 @@ class Clustering():
             # centroids.append(self.__centroids[sort_id])
 
         return clusters_id
-
 
     def clustering_news(self, news_list):
         print "Vectorize"
@@ -324,12 +354,10 @@ class Clustering():
 
     def reevaluate(self, time_info):
         print "Re-evaluate centroids"
-        print "previous cluster = ", len(self.__clusters_id)
         result = self.reevalute_centroids()
 
         print "Merge split event"
         self.online_clustering_merge(result=result)
-        print "re-evaluated cluster = ", len(self.__clusters_id)
 
     def write_event(self, t):
         """
@@ -352,13 +380,12 @@ class Clustering():
                 event_json = event_result
                 event_json['updated'] = t
 
+            # 寫入 event 基本info
             event_json['_id'] = event_id
             article_count = event_json['count']
             articles = []
             for news_id in self.__clusters_id[event_id]:
-                # news_result = self.__news_reader.query_one_by_item({"_id": news_id})
                 # 尋找news collection是否包含news_id的新聞
-                # if news_result:
                 if news_id in self.__news:
                     n_news_dict = {"id":"", "title":"", "url":"", "publishTime":"", "abstract":""}
                     news_dict = self.__news[news_id]
@@ -371,6 +398,15 @@ class Clustering():
                     article_count += 1
             event_json['count'] = article_count
             event_json['articles'] = articles
+
+            # 寫入 event 的父子關係
+            if event_id in self.__son2father_event:
+                father_event_id = self.__son2father_event[event_id]
+                event_json['father'] = father_event_id
+
+            if event_id in self.__father2son_event:
+                son_event_set = self.__father2son_event[event_id]
+                event_json['childrens'] = list(son_event_set)
 
             self.__event_reader.save_item(event_json)
             pbar.update(1)
@@ -393,8 +429,6 @@ class Clustering():
                 self.__single_count += 1
             for news_id in cluster:
                 if news_id in self.__news:
-                # result = self.__news_reader.query_one_by_item({"_id":news_id})
-                # if result:
                     result = self.__news[news_id]
                     out.write("Title: " + result['title'] + " Time: " + result['crawlTime'] + " Content: " + result['content'] + "\n")
 

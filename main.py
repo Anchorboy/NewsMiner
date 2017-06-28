@@ -26,8 +26,8 @@ if __name__ == "__main__":
     event_reader.remove_collection()
     # clustering = Clustering(sim_thres=sim, merge_sim_thres=merge_sim, subevent_sim_thres=sub_sim, dim=dim,
     #                         class_file=str(dim) + ".txt", news_reader=news_reader, event_reader=event_reader)
-    start_time_t = "2016-07-25 16:00:00"
-    end_time_t = "2016-07-27 18:00:00"
+    start_time_t = "2016-07-28 16:00:00"
+    end_time_t = "2016-08-03 18:00:00"
     day_diff = 86400
     day_window = 1
 
