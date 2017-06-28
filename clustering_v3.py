@@ -15,6 +15,7 @@ class Clustering():
         self.__merge_sim_thres = merge_sim_thres
         self.__subevent_sim_thres = subevent_sim_thres
         self.__mse_thres = 5 * 1e-6
+        self.__news = {}
         self.__events = {}
         self.__clusters_vec = {}
         self.__clusters_id = {}
@@ -49,6 +50,7 @@ class Clustering():
         pb = 0
         for news_dict in news_list:
             news_id = news_dict['_id']
+            self.__news[news_id] = news_dict
             news_stem_content = news_dict['stemContent']
             news_lower_content = news_dict['lowerContent']
             news_len = len(news_stem_content)
@@ -157,6 +159,7 @@ class Clustering():
                     if news_content_len > self.__min_news_len:
                         news_vec_in_event.append(vectorize_single_news(dim=self.__dim, news_dict=result))
                         news_id_in_event.append(news_id)
+                        self.__news[news_id] = result
 
             self.__clusters_vec[event_id] = np.array(news_vec_in_event)
             self.__clusters_id[event_id] = news_id_in_event
@@ -242,8 +245,10 @@ class Clustering():
             news_id_all = n_clusters_id[key]
             out.write("Cluster " + str(key) + " num = " + str(len(news_id_all)) + "\n")
             for news_id in news_id_all:
-                result = self.__news_reader.query_one_by_item({"_id":news_id})
-                if result:
+                # result = self.__news_reader.query_one_by_item({"_id":news_id})
+                if news_id in self.__news:
+                # if result:
+                    result = self.__news[news_id]
                     out.write("Title: " + result['title'] + " Time: " + result['crawlTime'] + " Content: " + result['content'] + "\n")
         out.close()
 
@@ -354,8 +359,16 @@ class Clustering():
                 # news_result = self.__news_reader.query_one_by_item({"_id": news_id})
                 # 尋找news collection是否包含news_id的新聞
                 # if news_result:
-                articles.append({"id": news_id})
-                article_count += 1
+                if news_id in self.__news:
+                    n_news_dict = {"id":"", "title":"", "url":"", "publishTime":"", "abstract":""}
+                    news_dict = self.__news[news_id]
+                    n_news_dict['id'] = news_dict['_id']
+                    n_news_dict['title'] = news_dict['title']
+                    n_news_dict['url'] = news_dict['url']
+                    n_news_dict['publishTime'] = news_dict['publishTime']
+                    n_news_dict['abstract'] = news_dict['title']
+                    articles.append(n_news_dict)
+                    article_count += 1
             event_json['count'] = article_count
             event_json['articles'] = articles
 
@@ -379,8 +392,10 @@ class Clustering():
             if len(cluster) == 1:
                 self.__single_count += 1
             for news_id in cluster:
-                result = self.__news_reader.query_one_by_item({"_id":news_id})
-                if result:
+                if news_id in self.__news:
+                # result = self.__news_reader.query_one_by_item({"_id":news_id})
+                # if result:
+                    result = self.__news[news_id]
                     out.write("Title: " + result['title'] + " Time: " + result['crawlTime'] + " Content: " + result['content'] + "\n")
 
         out.close()
