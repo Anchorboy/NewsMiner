@@ -414,40 +414,36 @@ class Clustering():
             # 寫入event的關鍵要素
             event_vecs = self.__clusters_vec[event_id]
             centroid_vec = self.__centroids[event_id]
-            # dist_list = [ (vid, np.sqrt(np.sum(np.square(vec - centroid_vec))) ) for vid, vec in enumerate(event_vecs) ]
-            # # print dist_list
-            # sort_dist = sorted(dist_list, key=lambda v:v[1])
-            # # print sort_dist
-            # key_news_id = self.__clusters_id[event_id][sort_dist[0][0]]
-            # news_dict = self.__news[key_news_id]
-            # key_news_dict = {"id": "", "title": "", "url": "", "publishTime": "", "abstract": ""}
-            # key_news_dict['id'] = news_dict['_id']
-            # key_news_dict['title'] = news_dict['title']
-            # key_news_dict['url'] = news_dict['url']
-            # key_news_dict['publishTime'] = news_dict['publishTime']
-            # key_news_dict['abstract'] = news_dict['title']
-            # event_json['keynews'] = key_news_dict
+            dist_list = [ (vid, np.sqrt(np.sum(np.square(vec - centroid_vec))) ) for vid, vec in enumerate(event_vecs) ]
+            sort_dist = sorted(dist_list, key=lambda v:v[1])
+            key_news_id = self.__clusters_id[event_id][sort_dist[0][0]]
+            news_dict = self.__news[key_news_id]
+            key_news_dict = {"id": "", "title": "", "url": "", "publishTime": "", "abstract": ""}
+            key_news_dict['id'] = news_dict['_id']
+            key_news_dict['title'] = news_dict['title']
+            key_news_dict['url'] = news_dict['url']
+            key_news_dict['publishTime'] = news_dict['publishTime']
+            key_news_dict['abstract'] = news_dict['title']
+            event_json['keynews'] = key_news_dict
 
             # 寫入event的相似事件
-            # centroid_vec = self.__centroids[event_id]
-            # score_list = [ (event_id, eid, cal_similarity(centroid_vec, vec)) for eid, vec in self.__centroids.iteritems() ]
-            # sort_scores = sorted(score_list, key=lambda v:v[-1], reverse=True)[1:]
+            centroid_vec = self.__centroids[event_id]
+            score_list = [ (event_id, eid, cal_similarity(centroid_vec, vec)) for eid, vec in self.__centroids.iteritems() ]
+            sort_scores = sorted(score_list, key=lambda v:v[-1], reverse=True)[1:]
 
-            # # print sort_scores
-            # related_events = []
-            # for score in sort_scores:
-            #     print score[-1]
-            #     if score[-1] > 0.4:
-            #         # r_event = {'id':"", 'label':"", score:0}
-            #         r_event = {}
-            #         rid = score[1]
-            #         # rlabel = self.__news[rid]['label']
-            #         r_event['id'] = rid
-            #         # r_event['label'] = rlabel
-            #         r_event['score'] = score[-1]
-            #         related_events.append(r_event)
-            # print related_events
-            # event_json['relatedEvents'] = related_events
+            # print sort_scores
+            related_events = []
+            for score in sort_scores:
+                if score[-1] > 0.4:
+                    # r_event = {'id':"", 'label':"", score:0}
+                    r_event = {}
+                    rid = score[1]
+                    # rlabel = self.__news[rid]['label']
+                    r_event['id'] = rid
+                    r_event['score'] = score[-1]
+                    related_events.append(r_event)
+
+            event_json['relatedEvents'] = related_events
 
             self.__event_reader.save_item(event_json)
             pbar.update(1)
