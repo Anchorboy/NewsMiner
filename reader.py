@@ -112,7 +112,7 @@ class EventReader(Reader):
         Reader.__init__(self, uri=uri)
         self.init_mongoDB()
         self.day_diff = 86400
-        self.window = 7
+        self.window = 10
 
     def init_mongoDB(self):
         """

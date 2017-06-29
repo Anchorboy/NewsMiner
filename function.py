@@ -1,7 +1,13 @@
 # -*- coding:utf-8 -*-
 import numpy as np
+from gensim.models import Word2Vec
+
+import logging
+logging.basicConfig(format='%(asctime)s : %(levelname)s " %(message)s', level=logging.INFO)
 
 word_model = {}
+word_vectors = {}
+# word_vectors = Word2Vec.load("model/NES200.bin")
 
 def load_word_model(class_file):
     """
@@ -31,17 +37,52 @@ def get_mse(vecs):
     MSE = np.mean(np.square(vecs - centroid_all))
     return MSE
 
+def get_dvi(centroids):
+    dist = [ np.sqrt(np.sum(np.square(cvec1 - cvec2))) \
+                 for eid2, cvec2 in centroids.iteritems() \
+                 for eid1, cvec1 in centroids.iteritems() ]
+
+    n_d = [sorted([ np.sqrt(np.sum(np.square(cvec1 - cvec2))) for eid2, cvec2 in centroids.iteritems() ]) for eid1, cvec1 in centroids.iteritems() ]
+    dvi = sorted([ ( x[1][1] / x[-1][1]) for x in n_d ])[:15]
+    # sort_dist = sorted(dist)
+    # min_dist = sort_dist[len(centroids)]
+    # max_dist = sort_dist[-1]
+    #
+    print dvi
+    # return min_dist / max_dist
+
 def vectorize_single_news(dim, news_dict):
     id_matrix = np.eye(dim)
 
     news_id = news_dict['_id']
     news_stem = news_dict['stemContent'].split()
+    news_lower = news_dict['lowerContent'].split()
 
     vector = np.zeros(dim)
     word_count = 0
     for word in news_stem:
         try:
             vector += id_matrix[int(word_model[word])]
+            word_count += 1
+        except KeyError:
+            pass
+
+    if word_count != 0:
+        vector /= word_count
+    return vector
+
+def vectorize_with_dis(dim, news_dict):
+    # id_matrix = np.eye(dim)
+
+    news_id = news_dict['_id']
+    news_stem = news_dict['stemContent'].split()
+    news_lower = news_dict['lowerContent'].split()
+
+    vector = np.zeros(dim)
+    word_count = 0
+    for word in news_lower:
+        try:
+            vector += word_vectors.wv[word]
             word_count += 1
         except KeyError:
             pass

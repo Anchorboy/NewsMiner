@@ -90,7 +90,8 @@ __event__ = {
         "father": -1,
 
         # /*事件相关性，降序排列*/
-        "relatedEvents": [{"id": 0, "label": "xxx", "score": 0.66}]
+        # [{"id": 0, "label": "xxx", "score": 0.66}]
+        "relatedEvents": []
 
         # /*实体关系（暂不考虑）*/
     }

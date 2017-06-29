@@ -5,7 +5,7 @@ from header import get_event_json
 from time import sleep
 from tqdm import tqdm
 from reader import *
-from function import load_word_model, cal_similarity, get_mse, vectorize_single_news
+from function import load_word_model, cal_similarity, get_mse, vectorize_single_news, get_dvi
 
 class Clustering():
     def __init__(self, sim_thres, merge_sim_thres, subevent_sim_thres, dim, class_file, news_reader, event_reader):
@@ -22,7 +22,8 @@ class Clustering():
         self.__centroids = {}
         self.__son2father_event = {} # single id: str
         self.__father2son_event = {} # son set: set of str
-        self.__min_news_len = 30
+        self.mse = []
+        self.__min_news_len = 50
         self.__news_count = 0
         self.__cluster_count = 0
         self.__event_count = 0
@@ -55,8 +56,10 @@ class Clustering():
             news_stem_content = news_dict['stemContent']
             news_lower_content = news_dict['lowerContent']
             news_len = len(news_stem_content)
+
             if news_len > self.__min_news_len:
                 vector = vectorize_single_news(dim=self.__dim, news_dict=news_dict)
+                # vector = vectorize_with_dis(dim=self.__dim, news_dict=news_dict)
                 vectors.append((news_id, vector))
             pb += 1
             pbar.update(1)
@@ -97,7 +100,7 @@ class Clustering():
                 # 新聞計算最相似的聚類中心，並回傳最大相似值 ( cluster_id, sim )
                 max_similarity = max([(key, cal_similarity(vec, centroids[key])) \
                                       for key in centroids], key=lambda t: t[1])
-            except ValueError:
+            except:
                 max_similarity = (0, 0)
 
             bestmukey = max_similarity[0]
@@ -168,6 +171,7 @@ class Clustering():
                     news_content_len = len(news_stem_content)
                     if news_content_len > self.__min_news_len:
                         news_vec_in_event.append(vectorize_single_news(dim=self.__dim, news_dict=result))
+                        # news_vec_in_event.append(vectorize_with_dis(dim=self.__dim, news_dict=result))
                         news_id_in_event.append(news_id)
                         self.__news[news_id] = result
 
@@ -222,7 +226,7 @@ class Clustering():
                     eid_new = event_id
                     self.__clusters_vec[eid_new] = np.array(cluster_vec)
                     self.__clusters_id[eid_new] = cluster_id
-
+                    self.__centroids[eid_new] = np.mean(self.__clusters_vec[eid_new], axis=0)
                     # self.__event_count += 1
                 else:
                     self.__clusters_vec[bestmukey] = np.vstack((self.__clusters_vec[bestmukey], cluster_vec))
@@ -291,12 +295,12 @@ class Clustering():
 
     def reevalute_centroids(self):
         # self.__centroids = [ np.zeros(self.__dim) for x in xrange(len(self.__clusters_vec)) ]
+
         self.__centroids = { key : np.zeros(self.__dim) for key in self.__clusters_vec }
         clusters_vec = {}
         clusters_id = {}
         centroids = {}
 
-        # mse_out = open(os.path.join(outbase, "mse"+str(self.__cluster_count)), "w")
         time.sleep(0.3)
         pbar = tqdm(total=len(self.__centroids), mininterval=1)
         for event_id in self.__clusters_vec:
@@ -304,7 +308,7 @@ class Clustering():
             self.__centroids[event_id] += np.mean(vecs, axis=0)
             if len(vecs) > 1:
                 mse = get_mse(vecs)
-                # mse_out.write("Cluster " + str(cid) + "\t" + str(mse) + "\n")
+                self.mse.append(mse)
                 if mse > self.__mse_thres:
                     cluster = (event_id, vecs)
                     n_clusters_vec, n_clusters_id, n_centroids = self.split_cluster(cluster=cluster)
@@ -314,7 +318,6 @@ class Clustering():
             pbar.update(1)
         pbar.close()
         time.sleep(0.3)
-        # mse_out.close()
         return clusters_vec, clusters_id, centroids
 
     def rearrange_cluster(self):
@@ -408,6 +411,44 @@ class Clustering():
                 son_event_set = self.__father2son_event[event_id]
                 event_json['childrens'] = list(son_event_set)
 
+            # 寫入event的關鍵要素
+            event_vecs = self.__clusters_vec[event_id]
+            centroid_vec = self.__centroids[event_id]
+            # dist_list = [ (vid, np.sqrt(np.sum(np.square(vec - centroid_vec))) ) for vid, vec in enumerate(event_vecs) ]
+            # # print dist_list
+            # sort_dist = sorted(dist_list, key=lambda v:v[1])
+            # # print sort_dist
+            # key_news_id = self.__clusters_id[event_id][sort_dist[0][0]]
+            # news_dict = self.__news[key_news_id]
+            # key_news_dict = {"id": "", "title": "", "url": "", "publishTime": "", "abstract": ""}
+            # key_news_dict['id'] = news_dict['_id']
+            # key_news_dict['title'] = news_dict['title']
+            # key_news_dict['url'] = news_dict['url']
+            # key_news_dict['publishTime'] = news_dict['publishTime']
+            # key_news_dict['abstract'] = news_dict['title']
+            # event_json['keynews'] = key_news_dict
+
+            # 寫入event的相似事件
+            # centroid_vec = self.__centroids[event_id]
+            # score_list = [ (event_id, eid, cal_similarity(centroid_vec, vec)) for eid, vec in self.__centroids.iteritems() ]
+            # sort_scores = sorted(score_list, key=lambda v:v[-1], reverse=True)[1:]
+
+            # # print sort_scores
+            # related_events = []
+            # for score in sort_scores:
+            #     print score[-1]
+            #     if score[-1] > 0.4:
+            #         # r_event = {'id':"", 'label':"", score:0}
+            #         r_event = {}
+            #         rid = score[1]
+            #         # rlabel = self.__news[rid]['label']
+            #         r_event['id'] = rid
+            #         # r_event['label'] = rlabel
+            #         r_event['score'] = score[-1]
+            #         related_events.append(r_event)
+            # print related_events
+            # event_json['relatedEvents'] = related_events
+
             self.__event_reader.save_item(event_json)
             pbar.update(1)
         pbar.close()
@@ -419,12 +460,12 @@ class Clustering():
             os.mkdir(outbase)
 
         out = open(os.path.join(outbase, str(self.__date)), "w")
-        id_out = open(os.path.join(outbase, "cid"), "w")
+        # id_out = open(os.path.join(outbase, "cid"), "w")
         clusters_id = self.rearrange_cluster()
 
         for event_id, cluster in clusters_id:
             out.write("Cluster " + str(event_id) + " num = " + str(len(cluster)) + "\n")
-            id_out.write(json.dumps(cluster) + "\n")
+            # id_out.write(json.dumps(cluster) + "\n")
             if len(cluster) == 1:
                 self.__single_count += 1
             for news_id in cluster:
@@ -433,7 +474,12 @@ class Clustering():
                     out.write("Title: " + result['title'] + " Time: " + result['crawlTime'] + " Content: " + result['content'] + "\n")
 
         out.close()
-        id_out.close()
+        # id_out.close()
+
+        mse_out = open(os.path.join(outbase, "mse"+str(self.__date)), "w")
+        for mse in sorted(self.mse, reverse=True):
+            mse_out.write(str(mse) + "\n")
+        mse_out.close()
 
     def write_log(self, time_info):
         (start_time_ts, start_time_t), (end_time_ts, end_time_t) = time_info
