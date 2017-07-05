@@ -1,6 +1,6 @@
 import sys
 from reader import NewsReader, EventReader
-from clustering_v3 import Clustering
+from clustering_v3 import Model
 from datetime import *
 import time
 
@@ -46,7 +46,7 @@ if __name__ == "__main__":
         time_info = ((current_time_start_ts, current_time_start_t), (current_time_end_ts, current_time_end_t))
 
         #clustering ----------------------------
-        clustering = Clustering(sim_thres=sim, merge_sim_thres=merge_sim, subevent_sim_thres=sub_sim, dim=dim,
+        clustering = Model(sim_thres=sim, merge_sim_thres=merge_sim, subevent_sim_thres=sub_sim, dim=dim,
                                 class_file=class_file, news_reader=news_reader, event_reader=event_reader)
         clustering.main(news_list=news_list, time_info=time_info)
         # ----------------------------------------
@@ -60,6 +60,6 @@ if __name__ == "__main__":
     news_list = news_reader.query_many_by_time(start_time=current_time_start_t, end_time=current_time_end_t)
     time_info = ((current_time_start_ts, current_time_start_t), (current_time_end_ts, current_time_end_t))
 
-    clustering = Clustering(sim_thres=sim, merge_sim_thres=merge_sim, subevent_sim_thres=sub_sim, dim=dim,
+    clustering = Model(sim_thres=sim, merge_sim_thres=merge_sim, subevent_sim_thres=sub_sim, dim=dim,
                             class_file=class_file, news_reader=news_reader, event_reader=event_reader)
     clustering.main(news_list=news_list, time_info=time_info)

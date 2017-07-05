@@ -5,11 +5,11 @@ from header import get_event_json
 from time import sleep
 from tqdm import tqdm
 from reader import *
-from function import load_word_model, cal_similarity, get_mse, vectorize_single_news
+from function import load_word_model, cal_similarity, get_mse, vectorize_single_news, get_content_abs
 
-class Clustering():
+class Model():
     def __init__(self, sim_thres, merge_sim_thres, subevent_sim_thres, dim, class_file, news_reader, event_reader):
-        load_word_model(class_file=class_file)
+        load_word_model(dim=dim, class_file=class_file)
         self.__dim = dim
         self.__sim_thres = sim_thres
         self.__merge_sim_thres = merge_sim_thres
@@ -69,7 +69,7 @@ class Clustering():
         time.sleep(0.3)
         return vectors
 
-    def online_clustering(self, vectors, sim_thres, mode, father_event_id=""):
+    def online_clustering(self, vectors, sim_thres, mode="clustering", father_event_id=""):
         """
         對輸入的vectors做online clustering聚類
         :param vectors: 全部文檔向量, list [ tuple news ( _id, vector ), ... , ]
@@ -85,6 +85,7 @@ class Clustering():
         time.sleep(0.3)
         pbar = 0
 
+        # 判斷mode, 分為split re-clustering跟clustering
         has_father_event = False
         if mode == "split":
             has_father_event = True
@@ -377,6 +378,7 @@ class Clustering():
         """
         time.sleep(0.3)
         pbar = tqdm(total=len(self.__clusters_id), mininterval=1)
+        events = []
         for event_id in self.__clusters_id:
             event_result = self.__event_reader.query_one_by_item({'_id': event_id})
             # 先尋找event collection是否包含event_id的事件
@@ -406,6 +408,7 @@ class Clustering():
                     n_news_dict['abstract'] = news_dict['title']
                     articles.append(n_news_dict)
                     article_count += 1
+            # articles
             event_json['count'] = article_count
             event_json['articles'] = articles
 
@@ -419,6 +422,7 @@ class Clustering():
                 event_json['childrens'] = list(son_event_set)
 
             # 寫入event的關鍵要素
+            # keynews
             event_vecs = self.__clusters_vec[event_id]
             centroid_vec = self.__centroids[event_id]
             dist_list = [ (vid, np.sqrt(np.sum(np.square(vec - centroid_vec))) ) for vid, vec in enumerate(event_vecs) ]
@@ -430,7 +434,7 @@ class Clustering():
             key_news_dict['title'] = news_dict['title']
             key_news_dict['url'] = news_dict['url']
             key_news_dict['publishTime'] = news_dict['publishTime']
-            # key_news_dict['abstract'] = news_dict['title']
+            key_news_dict['abstract'] = get_content_abs(dim=self.__dim, content=news_dict['content'], centroid=centroid_vec, r=0.2)
             event_json['keynews'] = key_news_dict
 
             # 寫入event的相似事件, 僅僅會link上本次生成或讀取的event, 存在於collection內已經過期的event不影響
@@ -452,10 +456,14 @@ class Clustering():
 
             event_json['relatedEvents'] = related_events
 
-            self.__event_reader.save_item(event_json)
+            events.append(event_json)
+            # self.__event_reader.save_item(event_json)
             pbar.update(1)
         pbar.close()
         time.sleep(0.3)
+
+        for event in events:
+            self.__event_reader.save_item(event)
 
     def write_result(self):
         """

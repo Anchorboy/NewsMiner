@@ -206,7 +206,7 @@ if __name__ == "__main__":
     result = event_reader.query_many_by_time("2016-07-25 16:00:00", "2016-07-27 16:00:00")
     for i in result:
         # print i['articles']
-        print i['relatedEvents']
+        # print i['relatedEvents']
         print i['keynews']
         print
     # a = [{'_id':5}, {'_id':6}, {'_id':7, 't':5}, {'_id': 7, 't':6}, {'_id': 7, 's':7}, {'_id': 7, 'qq':15}]
