@@ -81,9 +81,10 @@ __event__ = {
         "keywords": [{"word": "理财", "score": 0.66}, {"word": "互联网", "score": 0.62}],
 
         # /*事件要素，降序排列*/
-        "when": [{"word": "", "score": 0.66}, {"word": "", "score": 0.62}],
-        "where": [{"word": "", "score": 0.66}, {"word": "", "score": 0.62}],
-        "who": [{"word": "", "score": 0.66}, {"word": "", "score": 0.62}],
+        # [{"word": "2017", "score": 0.66}, {"word": "2016", "score": 0.62}]
+        "when": [],
+        "where": [],
+        "who": [],
 
         # /*事件层次关系*/
         "childrens": [],
