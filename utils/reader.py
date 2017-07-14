@@ -195,25 +195,17 @@ class EventReader(Reader):
         #     print i
         return result
 
-def visualize():
-    pass
-
-def test():
+if __name__ == "__main__":
     # news_reader = NewsReader(uri='localhost')
     # news_list = news_reader.query_mongoDB_by_time(start_time="2016-11-20 16:00:00", end_time="2016-11-20 18:00:00")
     IP_PORT = "10.1.1.46:27017"
     event_reader = EventReader(uri=IP_PORT)
     # result = event_reader.query_recent_events_by_time(t="2016-07-30 16:00:00")
-    # ts = event_reader.time2time_stamp(t="2016-07-27 16:00:00")
+    ts = event_reader.time2time_stamp(t="2016-07-27 16:00:00")
     # result = event_reader.query_recent_events_by_time("2016-07-31 16:00:00")
-    result = event_reader.query_many_by_time("2016-07-25 16:00:00", "2016-07-27 16:00:00")
+    result = event_reader.query_many_by_time("2016-07-25 16:00:00", "2016-07-30 16:00:00")
     for i in result:
         # print i['articles']
         # print i['relatedEvents']
-        print i['count']
-        print i['articles']
-        print i['keynews']
-        print "-----------------------"
-
-if __name__ == "__main__":
-    test()
+        print i
+        print

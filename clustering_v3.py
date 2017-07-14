@@ -5,11 +5,13 @@ from header import get_event_json
 from time import sleep
 from tqdm import tqdm
 from reader import *
-from function import load_word_model, cal_similarity, get_mse, vectorize_single_news, get_content_abs
+from utils.function import Function
+from utils.reader import EventReader, NewsReader
 
 class Model():
     def __init__(self, sim_thres, merge_sim_thres, subevent_sim_thres, dim, class_file, news_reader, event_reader):
-        load_word_model(dim=dim, class_file=class_file)
+        self._func = Function()
+        self._func.load_word_model(dim=dim, class_file=class_file)
         self.__dim = dim
         self.__sim_thres = sim_thres
         self.__merge_sim_thres = merge_sim_thres
@@ -23,7 +25,7 @@ class Model():
         self.__son2father_event = {} # single id: str
         self.__father2son_event = {} # son set: set of str
         self.mse = []
-        self.__min_news_len = 50
+        self.__min_news_len = 80
         self.__news_count = 0
         self.__cluster_count = 0
         self.__event_count = 0
@@ -58,7 +60,7 @@ class Model():
             news_len = len(news_stem_content)
 
             if news_len > self.__min_news_len:
-                vector = vectorize_single_news(dim=self.__dim, news_dict=news_dict)
+                vector = self._func.vectorize_single_news(dim=self.__dim, news_dict=news_dict)
                 # vector = vectorize_with_dis(dim=self.__dim, news_dict=news_dict)
                 vectors.append((news_id, vector))
             pb += 1
@@ -98,7 +100,7 @@ class Model():
 
             try:
                 # 新聞計算最相似的聚類中心，並回傳最大相似值 ( cluster_id, sim )
-                max_similarity = max([(key, cal_similarity(vec, centroids[key])) \
+                max_similarity = max([(key, self._func.cal_similarity(vec, centroids[key])) \
                                       for key in centroids], key=lambda t: t[1])
             except:
                 max_similarity = (0, 0)
@@ -169,7 +171,7 @@ class Model():
                     news_lower_content = result['lowerContent']
                     news_content_len = len(news_stem_content)
                     if news_content_len > self.__min_news_len:
-                        news_vec_in_event.append(vectorize_single_news(dim=self.__dim, news_dict=result))
+                        news_vec_in_event.append(self._func.vectorize_single_news(dim=self.__dim, news_dict=result))
                         # news_vec_in_event.append(vectorize_with_dis(dim=self.__dim, news_dict=result))
                         news_id_in_event.append(news_id)
                         self.__news[news_id] = result
@@ -217,7 +219,7 @@ class Model():
                 cluster_id = clusters_id[event_id]
                 centroid = centroids[event_id]
 
-                max_similarity = max([(eid, cal_similarity(centroid, self.__centroids[eid])) \
+                max_similarity = max([(eid, self._func.cal_similarity(centroid, self.__centroids[eid])) \
                                           for eid in self.__centroids], key=lambda t: t[1])
 
                 bestmukey = max_similarity[0]
@@ -315,7 +317,7 @@ class Model():
             vecs = self.__clusters_vec[event_id]
             self.__centroids[event_id] += np.mean(vecs, axis=0)
             if len(vecs) > 1:
-                mse = get_mse(vecs)
+                mse = self._func.get_mse(vecs)
                 self.mse.append(mse)
                 if mse > self.__mse_thres:
                     cluster = (event_id, vecs)
@@ -425,8 +427,8 @@ class Model():
             # keynews
             event_vecs = self.__clusters_vec[event_id]
             centroid_vec = self.__centroids[event_id]
-            dist_list = [ (vid, np.sqrt(np.sum(np.square(vec - centroid_vec))) ) for vid, vec in enumerate(event_vecs) ]
-            sort_dist = max(dist_list, key=lambda v:v[1])
+            sim_list = [ (vid, self._func.cal_similarity(vec, centroid_vec) ) for vid, vec in enumerate(event_vecs) ]
+            sort_dist = max(sim_list, key=lambda v:v[1])
             key_news_id = self.__clusters_id[event_id][sort_dist[0]]
             news_dict = self.__news[key_news_id]
             key_news_dict = {"id": "", "title": "", "url": "", "publishTime": "", "abstract": ""}
@@ -434,12 +436,12 @@ class Model():
             key_news_dict['title'] = news_dict['title']
             key_news_dict['url'] = news_dict['url']
             key_news_dict['publishTime'] = news_dict['publishTime']
-            key_news_dict['abstract'] = get_content_abs(dim=self.__dim, content=news_dict['content'], centroid=centroid_vec, r=0.2)
+            key_news_dict['abstract'] = self._func.get_content_abs(dim=self.__dim, content=news_dict['content'], centroid=centroid_vec, r=0.2)
             event_json['keynews'] = key_news_dict
 
             # 寫入event的相似事件, 僅僅會link上本次生成或讀取的event, 存在於collection內已經過期的event不影響
             centroid_vec = self.__centroids[event_id]
-            score_list = [ (event_id, eid, cal_similarity(centroid_vec, vec)) for eid, vec in self.__centroids.iteritems() ]
+            score_list = [ (event_id, eid, self._func.cal_similarity(centroid_vec, vec)) for eid, vec in self.__centroids.iteritems() ]
             sort_scores = sorted(score_list, key=lambda v:v[-1], reverse=True)[1:]
 
             # print sort_scores
@@ -543,3 +545,42 @@ class Model():
         self.reevaluate(time_info=time_info)
         self.output(time_info=time_info)
         print "-----------------------"
+
+def test_model():
+    print "test starting"
+    print "load function"
+    f = Function()
+    dim = 2200
+    class_file = "model/" + str(dim) + ".txt"
+    sim = 0.7
+    merge_sim = 0.7
+    sub_sim = 0.7
+    IP_PORT = "10.1.1.46:27017"
+    print "---------------"
+
+    print "test news/events reader"
+    news_reader = NewsReader(uri=IP_PORT)
+    event_reader = EventReader(uri=IP_PORT)
+    # clear event collection
+    event_reader.remove_collection()
+    print "---------------"
+
+    print "test clustering model"
+    start_time_t = "2016-07-25 16:00:00"
+    end_time_t = "2016-07-26 18:00:00"
+    time_info = f.generate_timeinfo(start_time_t, end_time_t)
+
+    print time_info
+    news_list = news_reader.query_many_by_time(start_time=start_time_t, end_time=end_time_t)
+    clustering = Model(sim_thres=sim,
+                       merge_sim_thres=merge_sim,
+                       subevent_sim_thres=sub_sim,
+                       dim=dim,
+                       class_file=class_file,
+                       news_reader=news_reader,
+                       event_reader=event_reader)
+    clustering.main(news_list=news_list, time_info=time_info)
+    print "---------------"
+
+if __name__ == "__main__":
+    test_model()
