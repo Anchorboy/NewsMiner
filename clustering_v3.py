@@ -451,16 +451,119 @@ class Model():
                     # r_event = {'id':"", 'label':"", score:0}
                     r_event = {}
                     rid = score[1]
-                    # rlabel = self.__news[rid]['label']
+                    # rlabel = self.__events[rid]['label']
+                    # r_event['label'] = rlabel
                     r_event['id'] = rid
                     r_event['score'] = score[-1]
                     related_events.append(r_event)
 
             event_json['relatedEvents'] = related_events
 
+            # 寫入實體列表, 並嘗試加上一個衰退率讓遠離事件中心的實體權重下降
+            # 衰退率 decay = 1.0 / n_news, 此假設為聚類最外圍的新聞權重最小, 如果有10筆新聞, 最後一個新聞權重為0.1
+            # sim_list 為最靠近中心的新聞sort list
+            weight = 1.0
+            decay = 1.0 / len(sim_list)
+            # {word:score}
+            keywords = {}
+            persons = {}
+            locations = {}
+            organizations = {}
+            entities = {}
+            when = {}
+            who = {}
+            where = {}
+            for vid, _ in sim_list:
+                news_id = self.__clusters_id[event_id][vid]
+                news = self.__news[news_id]
+                # 關鍵詞抽取
+                news_keywords_list = news['keywords']
+                for keyword in news_keywords_list:
+                    wd = keyword['word']
+                    score = keyword['score']
+                    if wd not in keywords:
+                        keywords[wd] = score * weight
+                    else:
+                        keywords[wd] += score * weight
+
+                # when, where, who抽取
+                news_when_list = news['when']
+                for keyword in news_when_list:
+                    wd = keyword['word']
+                    score = keyword['score']
+                    if wd not in when:
+                        when[wd] = score * weight
+                    else:
+                        when[wd] += score * weight
+
+                news_where_list = news['where']
+                for keyword in news_where_list:
+                    wd = keyword['word']
+                    score = keyword['score']
+                    if wd not in where:
+                        where[wd] = score * weight
+                    else:
+                        where[wd] += score * weight
+
+                news_who_list = news['who']
+                for keyword in news_who_list:
+                    wd = keyword['word']
+                    score = keyword['score']
+                    if wd not in who:
+                        who[wd] = score * weight
+                    else:
+                        who[wd] += score * weight
+
+                # person, locations, organizations抽取
+                # 暫時先用count作為score, 之後考慮打分機制
+                news_persons_list = news['persons']
+                for person in news_persons_list:
+                    mention = person['mention']
+                    count = person['count']
+                    url = person['linkedURL']
+                    if mention not in persons:
+                        persons[mention] = {'count':count, 'linkedURL':url}
+                    else:
+                        persons[mention]['count'] += count
+
+                news_locations_list = news['locations']
+                for location in news_locations_list:
+                    mention = location['mention']
+                    count = location['count']
+                    url = location['linkedURL']
+                    if mention not in persons:
+                        locations[mention] = {'count': count, 'linkedURL': url}
+                    else:
+                        locations[mention]['count'] += count
+
+                news_organizations_list = news['organizations']
+                for organization in news_organizations_list:
+                    mention = organization['mention']
+                    count = organization['count']
+                    url = organization['linkedURL']
+                    if mention not in organizations:
+                        organizations[mention] = {'count': count, 'linkedURL': url}
+                    else:
+                        organizations[mention]['count'] += count
+                weight -= decay
+            # 把生成的全部要素關鍵放回event_json
+            event_json['keywords'] = [{'word':word, 'score':'{:.2f}'.format(score)} for word, score in sorted(keywords.iteritems(), key=lambda x:x[1])]
+            event_json['when'] = [{'word':word, 'score':'{:.2f}'.format(score)} for word, score in sorted(when.iteritems(), key=lambda x:x[1])]
+            event_json['where'] = [{'word': word, 'score': '{:.2f}'.format(score)} for word, score in sorted(where.iteritems(), key=lambda x:x[1])]
+            event_json['who'] = [{'word': word, 'score': '{:.2f}'.format(score)} for word, score in sorted(who.iteritems(), key=lambda x:x[1])]
+            event_json['persons'] = [{'mention':mention, 'count':info['count'], 'linkedURL':info['linkedURL']}
+                                     for mention, info in sorted(persons.iteritems(), key=lambda x:x[1]['count'])]
+            event_json['locationss'] = [{'mention': mention, 'count': info['count'], 'linkedURL': info['linkedURL']}
+                                     for mention, info in sorted(locations.iteritems(), key=lambda x:x[1]['count'])]
+            event_json['organizations'] = [{'mention': mention, 'count': info['count'], 'linkedURL': info['linkedURL']}
+                                     for mention, info in sorted(organizations.iteritems(), key=lambda x:x[1]['count'])]
+            # 先暫時以keywords最大的關鍵字作為label, 到時候可以換成mention
+            event_json['label'] = event_json['keywords'][0]['word']
+
             events.append(event_json)
             # self.__event_reader.save_item(event_json)
             pbar.update(1)
+
         pbar.close()
         time.sleep(0.3)
 
@@ -581,8 +684,8 @@ def test_model():
                        event_reader=event_reader)
     clustering.main(news_list=news_list, time_info=time_info)
 
-    print "time 2016-07-26 16:00:00 to 2016-07-27 18:00:00"
-    start_time_t = "2016-07-26 16:00:00"
+    print "time 2016-07-26 18:00:00 to 2016-07-27 18:00:00"
+    start_time_t = "2016-07-26 18:00:00"
     end_time_t = "2016-07-27 18:00:00"
     time_info = f.generate_timeinfo(start_time_t, end_time_t)
 
