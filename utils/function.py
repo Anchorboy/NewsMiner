@@ -120,29 +120,38 @@ class Function():
         # 分成多個句子
         id_matrix = np.eye(dim)
         content_split = content.split('.')
+        min_fsent_len = 8
+
         c_val = np.zeros((len(content_split),))
         p_val = np.zeros_like(c_val)
         f_overlap = np.zeros_like(c_val)
         n = p_val.shape[0]
 
-        first_sent = content_split[0]
-        oth_sents = content_split[1:]
+        # 如果取到的第一句太短, 擴展到前兩句
+        if content_split[0] < min_fsent_len:
+            first_sent = ".".join(content_split[:2])
+            oth_sents = content_split[2:]
+        else:
+            first_sent = content_split[0]
+            oth_sents = content_split[1:]
 
         first_sent_vec = np.zeros(dim)
         wd_count = 0
         _, first_sent_stem = self.preprocess(first_sent)
         for wd in first_sent_stem:
             try:
-
                 first_sent_vec += id_matrix[int(self.word_model[wd])]
                 wd_count += 1
             except:
                 pass
-        if wd_count:
-            first_sent_vec /= wd_count
-            c_val[0] = self.cal_similarity(first_sent_vec, centroid)
-            p_val[0] = (n + 1.0) / n * c_val[0]
-            f_overlap[0] = 1.0
+        # if first sentence is not exist
+        if not wd_count:
+            return ".".join(content_split[:3])
+
+        first_sent_vec /= wd_count
+        c_val[0] = self.cal_similarity(first_sent_vec, centroid)
+        p_val[0] = (n + 1.0) / n * c_val[0]
+        f_overlap[0] = 1.0
 
         oth_sents_vecs = np.zeros((len(oth_sents), dim))
         for i, sents in enumerate(oth_sents):
@@ -165,8 +174,6 @@ class Function():
         sort_score = sorted([(i, j) for i, j in enumerate(score)], key=lambda x:x[1], reverse=True)
         compress_content = ".".join([content_split[i] for i, j in sort_score[: int(n*r)+1]])
 
-        if not len(compress_content):
-            print "no abstract generated"
         return compress_content
 
     def time2time_stamp(self, t):

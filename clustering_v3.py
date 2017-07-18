@@ -375,7 +375,7 @@ class Model():
     def write_event(self, t):
         """
         創造新的event並寫入mongoDB
-        :param t: end_time_t
+        :param t: end_time_t 改為 start_time_t
         :return:
         """
         time.sleep(0.3)
@@ -523,9 +523,9 @@ class Model():
         paras.close()
 
     def output(self, time_info):
-        _, (end_time_ts, end_time_t) = time_info
+        (start_time_ts, start_time_t), (end_time_ts, end_time_t) = time_info
         print "Write event"
-        self.write_event(t=end_time_t)
+        self.write_event(t=start_time_t)
         self.write_result()
         self.write_log(time_info=time_info)
 
@@ -544,7 +544,6 @@ class Model():
         self.merge_events(time_info=time_info, cluster_triple=cluster_triple)
         self.reevaluate(time_info=time_info)
         self.output(time_info=time_info)
-        print "-----------------------"
 
 def test_model():
     print "test starting"
@@ -566,8 +565,25 @@ def test_model():
     print "---------------"
 
     print "test clustering model"
+    print "time 2016-07-25 16:00:00 to 2016-07-26 18:00:00"
     start_time_t = "2016-07-25 16:00:00"
     end_time_t = "2016-07-26 18:00:00"
+    time_info = f.generate_timeinfo(start_time_t, end_time_t)
+
+    print time_info
+    news_list = news_reader.query_many_by_time(start_time=start_time_t, end_time=end_time_t)
+    clustering = Model(sim_thres=sim,
+                       merge_sim_thres=merge_sim,
+                       subevent_sim_thres=sub_sim,
+                       dim=dim,
+                       class_file=class_file,
+                       news_reader=news_reader,
+                       event_reader=event_reader)
+    clustering.main(news_list=news_list, time_info=time_info)
+
+    print "time 2016-07-26 16:00:00 to 2016-07-27 18:00:00"
+    start_time_t = "2016-07-26 16:00:00"
+    end_time_t = "2016-07-27 18:00:00"
     time_info = f.generate_timeinfo(start_time_t, end_time_t)
 
     print time_info

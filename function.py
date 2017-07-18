@@ -1,14 +1,25 @@
 # -*- coding:utf-8 -*-
+import re
 import numpy as np
-# from gensim.models import Word2Vec
+# from gensim.models import Word2Vec, KeyedVectors
 from reader import NewsReader, EventReader
+from nltk.stem.porter import PorterStemmer
 
 import logging
 logging.basicConfig(format='%(asctime)s : %(levelname)s " %(message)s', level=logging.INFO)
 
 word_model = {}
 word_vectors = {}
-# word_vectors = Word2Vec.load("model/NES200.bin")
+# word_vectors = KeyedVectors.load_word2vec_format("model/glove_w2v.6B.200d.txt")
+# word_vectors = KeyedVectors.load("model/glove.6B.200d.txt")
+sw_file = open("stopwords_en.txt", 'r')
+stopwords = list()
+with sw_file as f:
+    for line in f:
+        stopwords.append(line.strip())
+
+porter_stemmer = PorterStemmer()
+pattern = re.compile("[a-zA-Z]+")
 
 def load_word_model(dim, class_file):
     """
@@ -84,7 +95,7 @@ def vectorize_with_dis(dim, news_dict):
     word_count = 0
     for word in news_lower:
         try:
-            vector += word_vectors.wv[word]
+            vector += word_vectors[word]
             word_count += 1
         except KeyError:
             pass
@@ -92,6 +103,27 @@ def vectorize_with_dis(dim, news_dict):
     if word_count != 0:
         vector /= word_count
     return vector
+
+def preprocess(s):
+    # preprocess here
+    tokens = s.strip().split()
+    stem_content = ""
+    lower_content = ""
+    for token in tokens:
+        match = re.match(pattern, token)
+        # regular expression
+        if match:
+            # remove stop words
+            if match.group().lower() not in stopwords:
+                # stemming
+                lower_token = match.group().lower()
+                lower_content += lower_token + " "
+                try:
+                    stem = porter_stemmer.stem(lower_token)
+                    stem_content += stem + " "
+                except:
+                    pass
+    return lower_content, stem_content
 
 def get_content_abs(dim, content, centroid, r):
     """
@@ -115,8 +147,10 @@ def get_content_abs(dim, content, centroid, r):
 
     first_sent_vec = np.zeros(dim)
     wd_count = 0
-    for wd in first_sent.split():
+    _, first_sent_stem = preprocess(first_sent)
+    for wd in first_sent_stem:
         try:
+
             first_sent_vec += id_matrix[int(word_model[wd])]
             wd_count += 1
         except:
@@ -130,7 +164,8 @@ def get_content_abs(dim, content, centroid, r):
     oth_sents_vecs = np.zeros((len(oth_sents), dim))
     for i, sents in enumerate(oth_sents):
         wd_count = 0
-        for wd in sents.split():
+        _, oth_sent_stem = preprocess(sents)
+        for wd in oth_sent_stem:
             try:
                 oth_sents_vecs[i, :] += id_matrix[int(word_model[wd])]
                 wd_count += 1
@@ -150,13 +185,12 @@ def get_content_abs(dim, content, centroid, r):
 
 if __name__ == "__main__":
     IP_PORT = "10.1.1.46:27017"
-    load_word_model(dim=2200, class_file="2200.txt")
-    news_reader = NewsReader(uri=IP_PORT)
-    start_time_t = "2016-07-25 16:00:00"
-    end_time_t = "2016-07-26 18:00:00"
+    # load_word_model(dim=2200, class_file="2200.txt")
+    # news_reader = NewsReader(uri=IP_PORT)
+    # start_time_t = "2016-07-25 16:00:00"
+    # end_time_t = "2016-07-26 18:00:00"
     # news_list = news_reader.query_many_by_time(start_time=start_time_t, end_time=end_time_t)
     a = {'_id':100, 'stemContent':"unit sta qwe kin good. is aws kill job employ unit sta qwe kin good is. aws kill job employ unit sta qwe kin. good is aws kill job employ unit. sta qwe kin good is aws kill. job employ unit sta qwe kin good. is aws kill job employ unit sta qwe kin good is aws kill. job employ."}
     b = {'_id':1, 'stemContent':"unit sta qwe "}
-
     # print type(vectorize_single_news(2200, b))
     get_content_abs(2200, a['stemContent'], np.random.rand((2200)), 0.2)
