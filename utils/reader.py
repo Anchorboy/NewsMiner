@@ -8,8 +8,8 @@ from pymongo import MongoClient
 class Reader():
     def __init__(self, uri):
         self._db_name = "NES"
-        self._news_collection_name = "news"
-        self._event_collection_name = "event"
+        self._news_collection_name = "en_news"
+        self._event_collection_name = "en_event"
         self.client = MongoClient(uri)
         self.db = self.client[self._db_name]
 
@@ -195,17 +195,39 @@ class EventReader(Reader):
         #     print i
         return result
 
-if __name__ == "__main__":
+def visualize():
+    pass
+
+def test_news():
+    IP_PORT = "10.1.1.46:27017"
+    news_reader = NewsReader(uri=IP_PORT)
+    print "query news from 2016-07-25 16:00:00 to 2016-07-27 16:00:00"
+    news_list = news_reader.query_many_by_time(start_time="2017-07-20 16:00:00", end_time="2017-07-21 16:00:00")
+    for i in news_list:
+        print i['title'].decode('utf-8', errors="ignore")
+        print "-----------------------"
+
+def test_event():
     # news_reader = NewsReader(uri='localhost')
     # news_list = news_reader.query_mongoDB_by_time(start_time="2016-11-20 16:00:00", end_time="2016-11-20 18:00:00")
     IP_PORT = "10.1.1.46:27017"
     event_reader = EventReader(uri=IP_PORT)
     # result = event_reader.query_recent_events_by_time(t="2016-07-30 16:00:00")
-    ts = event_reader.time2time_stamp(t="2016-07-27 16:00:00")
+    # ts = event_reader.time2time_stamp(t="2016-07-27 16:00:00")
     # result = event_reader.query_recent_events_by_time("2016-07-31 16:00:00")
-    result = event_reader.query_many_by_time("2016-07-25 16:00:00", "2016-07-30 16:00:00")
+    result = event_reader.query_many_by_time("2016-07-25 16:00:00", "2016-07-27 16:00:00")
     for i in result:
         # print i['articles']
         # print i['relatedEvents']
-        print i
-        print
+        count = i['count']
+        if count > 20:
+            print i['count']
+            print i['articles']
+            print i['keynews']
+            print i['keywords']
+            print i['persons']
+            print "-----------------------"
+
+if __name__ == "__main__":
+    test_news()
+    test_event()

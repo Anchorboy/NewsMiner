@@ -3,9 +3,9 @@ import sys
 reload(sys)
 sys.setdefaultencoding('utf8')
 import json
-from reader import NewsReader, EventReader
-from clustering_v3 import Model
+from utils.reader import NewsReader, EventReader
 from utils.function import Function
+from clustering_v3 import Model
 from datetime import *
 import time
 import argparse
@@ -77,8 +77,6 @@ def main(args):
     print "---------------"
 
     print "reading news"
-    dim = 2200
-    class_file = "model/" + str(dim) + ".txt"
     IP_PORT = args.ip
     news_reader = NewsReader(uri=IP_PORT)
     event_reader = EventReader(uri=IP_PORT)
