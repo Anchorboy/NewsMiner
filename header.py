@@ -73,12 +73,16 @@ __event__ = {
         "articles": [],
 
         # /*实体列表，按相关性降序排列*/
-        "persons": [{"mention": "习大大", "score": 0.8, "linkedURL": "http://xlore.org/instance/xxxxx"}],
-        "locations": [{"mention": "北京", "score": 0.6, "linkedURL": "http://xlore.org/instance/xxxxx"}],
-        "organizations": [{"mention": "中国人民银行", "score": 0.68, "linkedURL": "http://xlore.org/instance/xxxxx"}],
+        # {"mention": "习大大", "score": 0.8, "linkedURL": "http://xlore.org/instance/xxxxx"}
+        # {"mention": "北京", "score": 0.6, "linkedURL": "http://xlore.org/instance/xxxxx"}
+        # {"mention": "中国人民银行", "score": 0.68, "linkedURL": "http://xlore.org/instance/xxxxx"}
+        "persons": [],
+        "locations": [],
+        "organizations": [],
 
         # /*关键词列表，降序排列*/
-        "keywords": [{"word": "理财", "score": 0.66}, {"word": "互联网", "score": 0.62}],
+        # {"word": "理财", "score": 0.66}, {"word": "互联网", "score": 0.62}
+        "keywords": [],
 
         # /*事件要素，降序排列*/
         # [{"word": "2017", "score": 0.66}, {"word": "2016", "score": 0.62}]

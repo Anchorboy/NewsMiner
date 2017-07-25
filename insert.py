@@ -64,7 +64,6 @@ def insert_news(input_base, collection):
                     filepath = os.path.join(dir, news_file)
                     news_json = get_news_json()
 
-                    duplicate = False
                     title = ""
                     with open(filepath, "r") as f:
                         for line in f:
@@ -84,16 +83,9 @@ def insert_news(input_base, collection):
                             elif attribute == "Image":
                                 images = value.split(); news_json['image'] = images
                             elif attribute == "Title":
-                                result = collection.find_one({'title': value})
                                 news_json['title'] = value
-                                title = value
-                                if result:
-                                    duplicate = True
-                                    break
                     news_json['crawlTime'] = t
-                    if not duplicate:
-                        collection.insert(news_json)
-                        count += 1
+                    collection.save(news_json)
 
     print "insert", count, "news"
 
@@ -101,7 +93,7 @@ if __name__ == "__main__":
     IP_PORT = "10.1.1.46:27017"
     client = MongoClient("10.1.1.46:27017")
     database_name = "NES"
-    collection_name = "news"
+    collection_name = "en_news"
     db = client[database_name]
     news_collection = db[collection_name]
 

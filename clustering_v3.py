@@ -9,14 +9,14 @@ from utils.function import Function
 from utils.reader import EventReader, NewsReader
 
 class Model():
-    def __init__(self, sim_thres, merge_sim_thres, subevent_sim_thres, dim, class_file, news_reader, event_reader):
+    def __init__(self, dim, class_file, news_reader, event_reader, sim_thres=0.7, merge_sim_thres=0.7, subevent_sim_thres=0.7):
         self._func = Function()
         self._func.load_word_model(dim=dim, class_file=class_file)
         self.__dim = dim
         self.__sim_thres = sim_thres
         self.__merge_sim_thres = merge_sim_thres
         self.__subevent_sim_thres = subevent_sim_thres
-        self.__mse_thres = 1e-5
+        self.__mse_thres = 5e-6
         self.__news = {}
         self.__events = {}
         self.__clusters_vec = {}
@@ -38,6 +38,7 @@ class Model():
         self.outbase = os.path.join(current_base, "Output",
                                's' + str(self.__sim_thres) + 'ms' + str(self.__merge_sim_thres) + 'sub' + str(
                                    self.__subevent_sim_thres) + 'dim' + str(self.__dim))
+        self.logbase = os.path.join(current_base, "log")
 
     def vectorize_mongolist(self, news_list):
         """
@@ -109,11 +110,11 @@ class Model():
 
             # 最大相似度小於相似度閾值, 產生新事件
             if max_similarity[1] < sim_thres:
-                # 父事件
+                # 父事件, split分裂時紀錄father event
                 if has_father_event:
                     key = father_event_id
                     has_father_event = False
-                # 子事件
+                # 新事件
                 else:
                     key = self.__date + "E" + str(self.__event_count)
                 clusters_vec[key] = np.array([vec])
@@ -139,7 +140,7 @@ class Model():
 
         if mode == 'clustering':
             pbar.close()
-        time.sleep(0.3)
+            time.sleep(0.3)
         return clusters_vec, clusters_id, centroids
 
     def read_events(self, t):
@@ -398,6 +399,7 @@ class Model():
             event_json['_id'] = event_id
             article_count = event_json['count']
             articles = []
+            centroid_vec = self.__centroids[event_id]
             for news_id in self.__clusters_id[event_id]:
                 # 尋找news collection是否包含news_id的新聞
                 if news_id in self.__news:
@@ -407,7 +409,7 @@ class Model():
                     n_news_dict['title'] = news_dict['title']
                     n_news_dict['url'] = news_dict['url']
                     n_news_dict['publishTime'] = news_dict['publishTime']
-                    n_news_dict['abstract'] = news_dict['title']
+                    n_news_dict['abstract'] = self._func.simple_content_abs(news_dict['content'])
                     articles.append(n_news_dict)
                     article_count += 1
             # articles
@@ -447,7 +449,7 @@ class Model():
             # print sort_scores
             related_events = []
             for score in sort_scores:
-                if score[-1] > 0.4:
+                if score[-1] > 0.55:
                     # r_event = {'id':"", 'label':"", score:0}
                     r_event = {}
                     rid = score[1]
@@ -516,10 +518,11 @@ class Model():
 
                 # person, locations, organizations抽取
                 # 暫時先用count作為score, 之後考慮打分機制
+                # 目前加上score考慮方式: 由count做打分, 並乘上weight, 隨著遠離cluster中心遞減
                 news_persons_list = news['persons']
                 for person in news_persons_list:
                     mention = person['mention']
-                    count = person['count']
+                    count = person['count'] * weight
                     url = person['linkedURL']
                     if mention not in persons:
                         persons[mention] = {'count':count, 'linkedURL':url}
@@ -529,9 +532,9 @@ class Model():
                 news_locations_list = news['locations']
                 for location in news_locations_list:
                     mention = location['mention']
-                    count = location['count']
+                    count = location['count'] * weight
                     url = location['linkedURL']
-                    if mention not in persons:
+                    if mention not in locations:
                         locations[mention] = {'count': count, 'linkedURL': url}
                     else:
                         locations[mention]['count'] += count
@@ -539,7 +542,7 @@ class Model():
                 news_organizations_list = news['organizations']
                 for organization in news_organizations_list:
                     mention = organization['mention']
-                    count = organization['count']
+                    count = organization['count'] * weight
                     url = organization['linkedURL']
                     if mention not in organizations:
                         organizations[mention] = {'count': count, 'linkedURL': url}
@@ -547,18 +550,21 @@ class Model():
                         organizations[mention]['count'] += count
                 weight -= decay
             # 把生成的全部要素關鍵放回event_json
-            event_json['keywords'] = [{'word':word, 'score':'{:.2f}'.format(score)} for word, score in sorted(keywords.iteritems(), key=lambda x:x[1])]
-            event_json['when'] = [{'word':word, 'score':'{:.2f}'.format(score)} for word, score in sorted(when.iteritems(), key=lambda x:x[1])]
-            event_json['where'] = [{'word': word, 'score': '{:.2f}'.format(score)} for word, score in sorted(where.iteritems(), key=lambda x:x[1])]
-            event_json['who'] = [{'word': word, 'score': '{:.2f}'.format(score)} for word, score in sorted(who.iteritems(), key=lambda x:x[1])]
-            event_json['persons'] = [{'mention':mention, 'count':info['count'], 'linkedURL':info['linkedURL']}
-                                     for mention, info in sorted(persons.iteritems(), key=lambda x:x[1]['count'])]
-            event_json['locationss'] = [{'mention': mention, 'count': info['count'], 'linkedURL': info['linkedURL']}
-                                     for mention, info in sorted(locations.iteritems(), key=lambda x:x[1]['count'])]
-            event_json['organizations'] = [{'mention': mention, 'count': info['count'], 'linkedURL': info['linkedURL']}
-                                     for mention, info in sorted(organizations.iteritems(), key=lambda x:x[1]['count'])]
-            # 先暫時以keywords最大的關鍵字作為label, 到時候可以換成mention
+            event_json['keywords'] = [{'word':word, 'score':'{:.2f}'.format(score)} for word, score in sorted(keywords.iteritems(), key=lambda x:x[1], reverse=True)]
+            event_json['when'] = [{'word':word, 'score':'{:.2f}'.format(score)} for word, score in sorted(when.iteritems(), key=lambda x:x[1], reverse=True)]
+            event_json['where'] = [{'word':word, 'score':'{:.2f}'.format(score)} for word, score in sorted(where.iteritems(), key=lambda x:x[1], reverse=True)]
+            event_json['who'] = [{'word':word, 'score':'{:.2f}'.format(score)} for word, score in sorted(who.iteritems(), key=lambda x:x[1], reverse=True)]
+            # count_list = []
+            event_json['persons'] = [{'mention':mention, 'count':'{:.2f}'.format(info['count']), 'linkedURL':info['linkedURL']}
+                                     for mention, info in sorted(persons.iteritems(), key=lambda x:x[1]['count'], reverse=True)]
+            event_json['locationss'] = [{'mention':mention, 'count':'{:.2f}'.format(info['count']), 'linkedURL': info['linkedURL']}
+                                     for mention, info in sorted(locations.iteritems(), key=lambda x:x[1]['count'], reverse=True)]
+            event_json['organizations'] = [{'mention':mention, 'count':'{:.2f}'.format(info['count']), 'linkedURL': info['linkedURL']}
+                                     for mention, info in sorted(organizations.iteritems(), key=lambda x:x[1]['count'], reverse=True)]
+            # 先暫時以keywords最大的關鍵字作為label, 到時候可以換成mention或其他keywords
             event_json['label'] = event_json['keywords'][0]['word']
+            # 本方法為考量全部keywords > 0.6的關鍵字, 並串聯再一起
+            # event_json['label'] = " ".join([keyword for keyword in event_json['keywords'] if keyword['score'] > 0.6])
 
             events.append(event_json)
             # self.__event_reader.save_item(event_json)
@@ -608,22 +614,24 @@ class Model():
         :return:
         """
         (start_time_ts, start_time_t), (end_time_ts, end_time_t) = time_info
-        outbase = self.outbase
-        if not os.path.exists(outbase):
-            os.mkdir(outbase)
+        logbase = self.logbase
+        if not os.path.exists(logbase):
+            os.mkdir(logbase)
 
-        paras = open(os.path.join(outbase, "log_"+str(self.__date)+".txt"), "w")
-        paras.write("Cost time = " + str(time.time() - self.__start) + "\n")
-        paras.write("Start time: " + start_time_t + "\n")
-        paras.write("End time: " + end_time_t + "\n")
-        paras.write("Similarity = " + str(self.__sim_thres) + "\n")
-        paras.write("Merge similarity = " + str(self.__merge_sim_thres) + "\n")
-        paras.write("Subevent similarity = " + str(self.__subevent_sim_thres) + "\n")
-        paras.write("Mse thres = " + str(self.__mse_thres) + "\n")
-        paras.write("Total news num = " + str(self.__news_count) + "\n")
-        paras.write("Single event = " + str(self.__single_count) + "\n")
-        paras.write("Events = " + str(len(self.__clusters_id)) + "\n")
-        paras.close()
+        params = {'cost':time.time()-self.__start,
+                  'start':start_time_t,
+                  'end':end_time_t,
+                  'clustering_sim':self.__sim_thres,
+                  'merge_sim':self.__merge_sim_thres,
+                  'subevent_sim':self.__subevent_sim_thres,
+                  'mse':self.__mse_thres,
+                  'n_news':self.__news_count,
+                  'n_single_event':self.__single_count,
+                  'n_events':len(self.__clusters_id)}
+        with open(os.path.join(logbase, "log_"+str(self.__date)+".json"), "w") as f:
+            f.write(json.dumps(params))
+        with open(os.path.join(logbase, "log.json"), "w") as f:
+            f.write(json.dumps(params))
 
     def output(self, time_info):
         (start_time_ts, start_time_t), (end_time_ts, end_time_t) = time_info

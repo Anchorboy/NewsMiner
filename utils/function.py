@@ -16,13 +16,6 @@ logging.basicConfig(format='%(asctime)s : %(levelname)s " %(message)s', level=lo
 class Function():
     def __init__(self):
         self.word_model = {}
-        self.stopwords = []
-        with open("stopwords_en.txt", 'r') as f:
-            for line in f:
-                self.stopwords.append(line.strip())
-
-        self.porter_stemmer = PorterStemmer()
-        self.pattern = re.compile("[a-zA-Z]+")
 
     def load_word_model(self, dim, class_file):
         """
@@ -35,6 +28,14 @@ class Function():
                 w = line.strip().split()
                 self.word_model[w[0]] = int(w[1])
                 assert (dim >= int(w[1]))
+
+        self.stopwords = []
+        with open("stopwords_en.txt", 'r') as f:
+            for line in f:
+                self.stopwords.append(line.strip())
+
+        self.porter_stemmer = PorterStemmer()
+        self.pattern = re.compile("[a-zA-Z]+")
 
     def cal_similarity(self, vec1, vec2):
         """
@@ -108,6 +109,9 @@ class Function():
                         pass
         return lower_content, stem_content
 
+    def simple_content_abs(self, content):
+        return ".".join(content.strip().split('.')[:3]) + "."
+
     def get_content_abs(self, dim, content, centroid, r):
         """
         MEAD方法, score = C + P + F
@@ -146,7 +150,7 @@ class Function():
                 pass
         # if first sentence is not exist
         if not wd_count:
-            return ".".join(content_split[:3])
+            return self.simple_content_abs(content)
 
         first_sent_vec /= wd_count
         c_val[0] = self.cal_similarity(first_sent_vec, centroid)
@@ -172,7 +176,7 @@ class Function():
 
         score = c_val + p_val + f_overlap
         sort_score = sorted([(i, j) for i, j in enumerate(score)], key=lambda x:x[1], reverse=True)
-        compress_content = ".".join([content_split[i] for i, j in sort_score[: int(n*r)+1]])
+        compress_content = ".".join([content_split[i] for i, j in sort_score[: int(n*r)+1]]) + "."
 
         return compress_content
 
