@@ -11,11 +11,11 @@ import time
 import argparse
 
 def test():
-    dim = 2200
-    class_file = "model/" + str(dim) + ".txt"
-    sim = 0.7
-    merge_sim = 0.7
-    sub_sim = 0.7
+    dim = args.dim
+    class_file = args.f
+    sim = args.s
+    merge_sim = args.ms
+    sub_sim = args.ss
     IP_PORT = "10.1.1.46:27017"
 
     news_reader = NewsReader(uri=IP_PORT)
@@ -24,9 +24,9 @@ def test():
     # clustering = Clustering(sim_thres=sim, merge_sim_thres=merge_sim, subevent_sim_thres=sub_sim, dim=dim,
     #                         class_file=str(dim) + ".txt", news_reader=news_reader, event_reader=event_reader)
     start_time_t = "2016-07-25 16:00:00"
-    end_time_t = "2016-07-28 18:00:00"
+    end_time_t = "2016-07-29 18:00:00"
     day_diff = 86400
-    day_window = 1
+    day_window = args.d
 
     func = Function()
     print "test start"
@@ -81,12 +81,6 @@ def main(args):
     news_reader = NewsReader(uri=IP_PORT)
     event_reader = EventReader(uri=IP_PORT)
     news_list = news_reader.query_many_by_time(start_time=start_time_t, end_time=end_time_t)
-    print news_list.count()
-    cnt = 0
-    for news in news_list:
-        if 'stemContent' not in news:
-            cnt += 1
-    print cnt
     print "---------------"
 
     print "start clustering"
@@ -107,7 +101,7 @@ if __name__ == "__main__":
     parser.add_argument("-ip", default="10.1.1.46:27017")
     parser.add_argument("-debug", default=0, type=int)
     parser.add_argument("-dim", default=dim, type=int)
-    parser.add_argument("-f", default="model/" + str(dim) + ".txt")
+    parser.add_argument("-f", default="utils/" + str(dim) + ".txt")
     parser.add_argument("-d", default=1, type=int)
     parser.add_argument("-s", default=0.7, type=float)
     parser.add_argument("-ss", default=0.7, type=float)

@@ -1,12 +1,14 @@
 # -*- coding:utf-8 -*-
 import os
+
 import numpy as np
-from header import get_event_json
-from time import sleep
 from tqdm import tqdm
-from reader import *
+
+from header import get_event_json
+from test.reader import *
 from utils.function import Function
 from utils.reader import EventReader, NewsReader
+
 
 class Model():
     def __init__(self, dim, class_file, news_reader, event_reader, sim_thres=0.7, merge_sim_thres=0.7, subevent_sim_thres=0.7):
@@ -19,6 +21,7 @@ class Model():
         self.__mse_thres = 5e-6
         self.__news = {}
         self.__events = {}
+        self.__updated_events = {}
         self.__clusters_vec = {}
         self.__clusters_id = {}
         self.__centroids = {}
@@ -66,8 +69,7 @@ class Model():
                 vectors.append((news_id, vector))
             pb += 1
             pbar.update(1)
-            # if pb % 10 == 0:
-            #     pbar.update(10)
+
         pbar.close()
         time.sleep(0.3)
         return vectors
@@ -158,6 +160,7 @@ class Model():
         for event in result:
             event_id = event['_id']
             self.__events[event_id] = event
+            self.__updated_events[event_id] = False
 
             news_vec_in_event = []
             news_id_in_event = []
@@ -186,7 +189,7 @@ class Model():
                 self.__son2father_event[event_id] = father
 
             # 將讀取的event放入全部聚類的存儲 self.__cluster_vec, self.__cluster_id, self.__centroids
-            self.__clusters_vec[event_id] = np.array(news_vec_in_event)
+            self.__clusters_vec[event_id] = np.asarray(news_vec_in_event, dtype=np.float)
             self.__clusters_id[event_id] = news_id_in_event
             self.__centroids[event_id] = np.mean(self.__clusters_vec[event_id], axis=0)
             event_count += 1
@@ -235,6 +238,8 @@ class Model():
                 else:
                     self.__clusters_vec[bestmukey] = np.vstack((self.__clusters_vec[bestmukey], cluster_vec))
                     self.__clusters_id[bestmukey].extend(cluster_id)
+                    # merge到現有的event中, 並紀錄是否該event有更新的news, 如果有則為true
+                    self.__updated_events[bestmukey] = True
 
                     # 之前曾經分裂過的event, 再次合併時必須將層次關係移除
                     if event_id in self.__son2father_event:
@@ -375,7 +380,7 @@ class Model():
 
     def write_event(self, t):
         """
-        創造新的event並寫入mongoDB
+        創造新的event並寫入mongoDB, event格式包含在header.py中
         :param t: end_time_t 改為 start_time_t
         :return:
         """
@@ -393,13 +398,16 @@ class Model():
             # 找到
             else:
                 event_json = event_result
+                # 由於不是每個讀取的event都有更新, 因此僅僅紀錄更新過的event並將其寫回mongodb, 如果沒有更新就直接跳過
+                if not self.__updated_events[event_id]:
+                    pbar.update(1)
+                    continue
                 event_json['updated'] = t
 
             # 寫入 event 基本info
             event_json['_id'] = event_id
             article_count = event_json['count']
             articles = []
-            centroid_vec = self.__centroids[event_id]
             for news_id in self.__clusters_id[event_id]:
                 # 尋找news collection是否包含news_id的新聞
                 if news_id in self.__news:
@@ -449,7 +457,7 @@ class Model():
             # print sort_scores
             related_events = []
             for score in sort_scores:
-                if score[-1] > 0.55:
+                if score[-1] > 0.6:
                     # r_event = {'id':"", 'label':"", score:0}
                     r_event = {}
                     rid = score[1]
@@ -555,11 +563,11 @@ class Model():
             event_json['where'] = [{'word':word, 'score':'{:.2f}'.format(score)} for word, score in sorted(where.iteritems(), key=lambda x:x[1], reverse=True)]
             event_json['who'] = [{'word':word, 'score':'{:.2f}'.format(score)} for word, score in sorted(who.iteritems(), key=lambda x:x[1], reverse=True)]
             # count_list = []
-            event_json['persons'] = [{'mention':mention, 'count':'{:.2f}'.format(info['count']), 'linkedURL':info['linkedURL']}
+            event_json['persons'] = [{'mention':mention, 'score':'{:.2f}'.format(info['count']), 'linkedURL':info['linkedURL']}
                                      for mention, info in sorted(persons.iteritems(), key=lambda x:x[1]['count'], reverse=True)]
-            event_json['locationss'] = [{'mention':mention, 'count':'{:.2f}'.format(info['count']), 'linkedURL': info['linkedURL']}
+            event_json['locationss'] = [{'mention':mention, 'score':'{:.2f}'.format(info['count']), 'linkedURL': info['linkedURL']}
                                      for mention, info in sorted(locations.iteritems(), key=lambda x:x[1]['count'], reverse=True)]
-            event_json['organizations'] = [{'mention':mention, 'count':'{:.2f}'.format(info['count']), 'linkedURL': info['linkedURL']}
+            event_json['organizations'] = [{'mention':mention, 'score':'{:.2f}'.format(info['count']), 'linkedURL': info['linkedURL']}
                                      for mention, info in sorted(organizations.iteritems(), key=lambda x:x[1]['count'], reverse=True)]
             # 先暫時以keywords最大的關鍵字作為label, 到時候可以換成mention或其他keywords
             event_json['label'] = event_json['keywords'][0]['word']
@@ -651,17 +659,21 @@ class Model():
         """
         (start_time_ts, start_time_t), (end_time_ts, end_time_t) = time_info
         self.__date = self.__event_reader.create_event_id(t=start_time_t)
-        cluster_triple = self.clustering_news(news_list=news_list)
-        self.merge_events(time_info=time_info, cluster_triple=cluster_triple)
-        self.reevaluate(time_info=time_info)
-        self.output(time_info=time_info)
+        if news_list.count():
+            cluster_triple = self.clustering_news(news_list=news_list)
+            self.merge_events(time_info=time_info, cluster_triple=cluster_triple)
+            self.reevaluate(time_info=time_info)
+            self.output(time_info=time_info)
+        else:
+            self.write_log(time_info=time_info)
+            print "no news in current time span"
 
 def test_model():
     print "test starting"
     print "load function"
     f = Function()
     dim = 2200
-    class_file = "model/" + str(dim) + ".txt"
+    class_file = "utils/" + str(dim) + ".txt"
     sim = 0.7
     merge_sim = 0.7
     sub_sim = 0.7

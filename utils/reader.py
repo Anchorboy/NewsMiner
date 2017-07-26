@@ -108,11 +108,11 @@ class NewsReader(Reader):
         return result
 
 class EventReader(Reader):
-    def __init__(self, uri):
+    def __init__(self, uri, window=10):
         Reader.__init__(self, uri=uri)
         self.init_mongoDB()
         self.day_diff = 86400
-        self.window = 10
+        self.window = window
 
     def init_mongoDB(self):
         """
@@ -151,15 +151,14 @@ class EventReader(Reader):
         eid = eid.replace(' ', '')
         return eid
 
+    def close_events(self, t):
+        self.event_collection.update({"updated": {"$lt": t}, "closed":""}, {"$set":{"closed":t}}, upsert=False, multi=True)
+
     def query_recent_events_by_time(self, t):
         last_time = int(Reader.time2time_stamp(self, t) - self.day_diff * self.window)
         last_time = Reader.time_stamp2time(self, last_time)
+        self.close_events(last_time)
         return self.query_many_by_time(start_time=last_time, end_time=t)
-
-    def query_recent_events_by_timestamp(self, ts):
-        last_time = int(ts - self.day_diff * self.window)
-        last_time = Reader.time_stamp2time(self, last_time)
-        return self.query_many_by_time(start_time=last_time, end_time=ts)
 
     def query_many_by_time(self, start_time, end_time):
         """
@@ -195,9 +194,6 @@ class EventReader(Reader):
         #     print i
         return result
 
-def visualize():
-    pass
-
 def test_news():
     IP_PORT = "10.1.1.46:27017"
     news_reader = NewsReader(uri=IP_PORT)
@@ -215,7 +211,7 @@ def test_event():
     # result = event_reader.query_recent_events_by_time(t="2016-07-30 16:00:00")
     # ts = event_reader.time2time_stamp(t="2016-07-27 16:00:00")
     # result = event_reader.query_recent_events_by_time("2016-07-31 16:00:00")
-    result = event_reader.query_many_by_time("2016-07-25 16:00:00", "2016-07-27 16:00:00")
+    result = event_reader.query_many_by_time("2016-07-25 16:00:00", "2016-07-30 16:00:00")
     for i in result:
         # print i['articles']
         # print i['relatedEvents']
@@ -229,5 +225,5 @@ def test_event():
             print "-----------------------"
 
 if __name__ == "__main__":
-    test_news()
+    # test_news()
     test_event()

@@ -108,11 +108,11 @@ class NewsReader(Reader):
         return result
 
 class EventReader(Reader):
-    def __init__(self, uri):
+    def __init__(self, uri, window=10):
         Reader.__init__(self, uri=uri)
         self.init_mongoDB()
         self.day_diff = 86400
-        self.window = 10
+        self.window = window
 
     def init_mongoDB(self):
         """
@@ -151,15 +151,14 @@ class EventReader(Reader):
         eid = eid.replace(' ', '')
         return eid
 
+    def close_events(self, t):
+        self.event_collection.update({"updated": {"$lt": t}, "closed":""}, {"$set":{"closed":t}}, upsert=False, multi=True)
+
     def query_recent_events_by_time(self, t):
         last_time = int(Reader.time2time_stamp(self, t) - self.day_diff * self.window)
         last_time = Reader.time_stamp2time(self, last_time)
+        self.close_events(t)
         return self.query_many_by_time(start_time=last_time, end_time=t)
-
-    def query_recent_events_by_timestamp(self, ts):
-        last_time = int(ts - self.day_diff * self.window)
-        last_time = Reader.time_stamp2time(self, last_time)
-        return self.query_many_by_time(start_time=last_time, end_time=ts)
 
     def query_many_by_time(self, start_time, end_time):
         """
@@ -168,7 +167,7 @@ class EventReader(Reader):
         :param end_time: 結束時間 (time.time() 現在運行時間)
         :return: result: 查詢結果
         """
-        result = self.event_collection.find({"updated": {"$gt": start_time, "$lt": end_time}})
+        result = self.event_collection.find({"updated": {"$gt": start_time, "$lt": end_time}, "closed":""})
         # for i in result:
         #     print i
         return result
@@ -194,9 +193,6 @@ class EventReader(Reader):
         # for i in result:
         #     print i
         return result
-
-def visualize():
-    pass
 
 def test_news():
     IP_PORT = "10.1.1.46:27017"

@@ -2,7 +2,7 @@
 import sys
 reload(sys)
 sys.setdefaultencoding( "utf-8" )
-
+import os
 import re
 import numpy as np
 from reader import NewsReader, EventReader
@@ -30,7 +30,7 @@ class Function():
                 assert (dim >= int(w[1]))
 
         self.stopwords = []
-        with open("stopwords_en.txt", 'r') as f:
+        with open("utils\stopwords_en.txt", 'r') as f:
             for line in f:
                 self.stopwords.append(line.strip())
 
