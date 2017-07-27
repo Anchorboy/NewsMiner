@@ -4,8 +4,8 @@ reload(sys)
 sys.setdefaultencoding( "utf-8" )
 import os
 import re
+from scipy.spatial import distance
 import numpy as np
-from reader import NewsReader, EventReader
 from nltk.stem.porter import PorterStemmer
 from datetime import *
 import time
@@ -44,29 +44,23 @@ class Function():
         :param vec2: 向量2
         :return: similarity: consine similarity
         """
-        return np.dot(vec1, vec2) / (np.linalg.norm(vec1) * np.linalg.norm(vec2))
+        return 1.0 - distance.cosine(vec1, vec2)
 
     # get mean of square error
-    def get_mse(self, vecs):
+    def get_mse(self, vecs, centroid):
         rows, cols = vecs.shape
-        centroid = np.mean(vecs, axis=0)
+        # centroid = np.mean(vecs, axis=0)
         centroid_all = np.tile(centroid, (rows, 1))
         MSE = np.mean(np.square(vecs - centroid_all))
         return MSE
 
-    def get_dvi(self, centroids):
-        dist = [ np.sqrt(np.sum(np.square(cvec1 - cvec2))) \
-                     for eid2, cvec2 in centroids.iteritems() \
-                     for eid1, cvec1 in centroids.iteritems() ]
-
-        n_d = [sorted([ np.sqrt(np.sum(np.square(cvec1 - cvec2))) for eid2, cvec2 in centroids.iteritems() ]) for eid1, cvec1 in centroids.iteritems() ]
-        dvi = sorted([ ( x[1][1] / x[-1][1]) for x in n_d ])[:15]
-        # sort_dist = sorted(dist)
-        # min_dist = sort_dist[len(centroids)]
-        # max_dist = sort_dist[-1]
-        #
-        print dvi
-        # return min_dist / max_dist
+    def get_cos(self, vecs, centroid):
+        rows, cols = vecs.shape
+        # centroid = np.mean(vecs, axis=0)
+        centroid_all = np.tile(centroid, (rows, 1))
+        # COS = np.mean(distance.cdist(vecs, centroid_all, 'cosine'))
+        COS_STD = np.std(np.mean(distance.cdist(vecs, centroid_all, 'cosine'), axis=1))
+        return COS_STD
 
     def vectorize_single_news(self, dim, news_dict):
         id_matrix = np.eye(dim)
@@ -112,7 +106,7 @@ class Function():
     def simple_content_abs(self, content):
         return ".".join(content.strip().split('.')[:3]) + "."
 
-    def get_content_abs(self, dim, content, centroid, r):
+    def get_content_abs(self, dim, content, centroid, r=0.1):
         """
         MEAD方法, score = C + P + F
         :param dim: dimension

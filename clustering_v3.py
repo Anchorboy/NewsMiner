@@ -1,11 +1,11 @@
 # -*- coding:utf-8 -*-
 import os
-
+import json
 import numpy as np
 from tqdm import tqdm
-
+from datetime import *
+import time
 from header import get_event_json
-from test.reader import *
 from utils.function import Function
 from utils.reader import EventReader, NewsReader
 
@@ -19,6 +19,7 @@ class Model():
         self.__merge_sim_thres = merge_sim_thres
         self.__subevent_sim_thres = subevent_sim_thres
         self.__mse_thres = 5e-6
+        self.__cos_thres = 0.2
         self.__news = {}
         self.__events = {}
         self.__updated_events = {}
@@ -28,6 +29,8 @@ class Model():
         self.__son2father_event = {} # single id: str
         self.__father2son_event = {} # son set: set of str
         self.mse = []
+        self.cos = []
+        self.cos_std = []
         self.__min_news_len = 80
         self.__news_count = 0
         self.__cluster_count = 0
@@ -145,14 +148,14 @@ class Model():
             time.sleep(0.3)
         return clusters_vec, clusters_id, centroids
 
-    def read_events(self, t):
+    def read_events(self, start_time_t):
         """
         從mongoDB event collection 讀取上一個階段聚類完成的event, 讀取後將event放入 self.__events 存儲
         在當中也會讀取mongoDB news collection, 並對於讀取的news作文檔向量化
         :param t: time string
         :return: event count: int
         """
-        result = self.__event_reader.query_recent_events_by_time(t=t)
+        result = self.__event_reader.query_recent_events_by_time(t=start_time_t)
 
         time.sleep(0.3)
         pbar = tqdm(total=result.count(), mininterval=0.5)
@@ -312,7 +315,7 @@ class Model():
         目前方法: MSE
         :return:
         """
-        self.__centroids = { key : np.zeros(self.__dim) for key in self.__clusters_vec }
+        # self.__centroids = { key : np.mean(self.__clusters_vec[key], axis=0) for key in self.__clusters_vec }
         clusters_vec = {}
         clusters_id = {}
         centroids = {}
@@ -321,11 +324,16 @@ class Model():
         pbar = tqdm(total=len(self.__centroids), mininterval=1)
         for event_id in self.__clusters_vec:
             vecs = self.__clusters_vec[event_id]
-            self.__centroids[event_id] += np.mean(vecs, axis=0)
+            self.__centroids[event_id] = np.mean(vecs, axis=0)
+            cent_vec = self.__centroids[event_id]
             if len(vecs) > 1:
-                mse = self._func.get_mse(vecs)
-                self.mse.append(mse)
-                if mse > self.__mse_thres:
+                # mse = self._func.get_mse(vecs, cent_vec)
+                cos_std = self._func.get_cos(vecs, cent_vec)
+                # self.mse.append(mse)
+                # self.cos.append(cos)
+                self.cos_std.append(cos_std)
+                if cos_std > 0.06:
+                # if cos > self.__cos_thres:
                     cluster = (event_id, vecs)
                     n_clusters_vec, n_clusters_id, n_centroids = self.split_cluster(cluster=cluster)
                     clusters_vec.update(n_clusters_vec)
@@ -364,7 +372,7 @@ class Model():
     def merge_events(self, time_info, cluster_triple):
         (start_time_ts, start_time_t), _ = time_info
         print "Read events"
-        self.read_events(t=start_time_t)
+        self.read_events(start_time_t=start_time_t)
 
         print "Merge"
         print "previous cluster = ", len(self.__clusters_id)
@@ -378,7 +386,7 @@ class Model():
         print "Merge split event"
         self.online_clustering_merge(cluster_triple=cluster_triple)
 
-    def write_event(self, t):
+    def write_event(self, start_time_t):
         """
         創造新的event並寫入mongoDB, event格式包含在header.py中
         :param t: end_time_t 改為 start_time_t
@@ -393,8 +401,8 @@ class Model():
             # 沒有找到
             if not event_result:
                 event_json = get_event_json()
-                event_json['created'] = t
-                event_json['updated'] = t
+                event_json['created'] = start_time_t
+                event_json['updated'] = start_time_t
             # 找到
             else:
                 event_json = event_result
@@ -402,7 +410,7 @@ class Model():
                 if not self.__updated_events[event_id]:
                     pbar.update(1)
                     continue
-                event_json['updated'] = t
+                event_json['updated'] = start_time_t
 
             # 寫入 event 基本info
             event_json['_id'] = event_id
@@ -428,10 +436,11 @@ class Model():
             if event_id in self.__son2father_event:
                 father_event_id = self.__son2father_event[event_id]
                 event_json['father'] = father_event_id
-
+            # 在這裡插入如果有子事件分裂的話, 則對該事件停止繼續合併的策略
             if event_id in self.__father2son_event:
                 son_event_set = self.__father2son_event[event_id]
                 event_json['childrens'] = list(son_event_set)
+                event_json['closed'] = start_time_t
 
             # 寫入event的關鍵要素
             # keynews
@@ -446,7 +455,7 @@ class Model():
             key_news_dict['title'] = news_dict['title']
             key_news_dict['url'] = news_dict['url']
             key_news_dict['publishTime'] = news_dict['publishTime']
-            key_news_dict['abstract'] = self._func.get_content_abs(dim=self.__dim, content=news_dict['content'], centroid=centroid_vec, r=0.2)
+            key_news_dict['abstract'] = self._func.get_content_abs(dim=self.__dim, content=news_dict['content'], centroid=centroid_vec, r=0.1)
             event_json['keynews'] = key_news_dict
 
             # 寫入event的相似事件, 僅僅會link上本次生成或讀取的event, 存在於collection內已經過期的event不影響
@@ -455,8 +464,9 @@ class Model():
             sort_scores = sorted(score_list, key=lambda v:v[-1], reverse=True)[1:]
 
             # print sort_scores
+            k_realted_events = 15
             related_events = []
-            for score in sort_scores:
+            for score in sort_scores[:k_realted_events]:
                 if score[-1] > 0.6:
                     # r_event = {'id':"", 'label':"", score:0}
                     r_event = {}
@@ -558,19 +568,20 @@ class Model():
                         organizations[mention]['count'] += count
                 weight -= decay
             # 把生成的全部要素關鍵放回event_json
-            event_json['keywords'] = [{'word':word, 'score':'{:.2f}'.format(score)} for word, score in sorted(keywords.iteritems(), key=lambda x:x[1], reverse=True)]
-            event_json['when'] = [{'word':word, 'score':'{:.2f}'.format(score)} for word, score in sorted(when.iteritems(), key=lambda x:x[1], reverse=True)]
-            event_json['where'] = [{'word':word, 'score':'{:.2f}'.format(score)} for word, score in sorted(where.iteritems(), key=lambda x:x[1], reverse=True)]
-            event_json['who'] = [{'word':word, 'score':'{:.2f}'.format(score)} for word, score in sorted(who.iteritems(), key=lambda x:x[1], reverse=True)]
+            k_important = 10
+            event_json['keywords'] = [{'word':word, 'score':'{:.2f}'.format(score)} for word, score in sorted(keywords.iteritems(), key=lambda x:x[1], reverse=True)[:k_important]]
+            event_json['when'] = [{'word':word, 'score':'{:.2f}'.format(score)} for word, score in sorted(when.iteritems(), key=lambda x:x[1], reverse=True)[:k_important]]
+            event_json['where'] = [{'word':word, 'score':'{:.2f}'.format(score)} for word, score in sorted(where.iteritems(), key=lambda x:x[1], reverse=True)[:k_important]]
+            event_json['who'] = [{'word':word, 'score':'{:.2f}'.format(score)} for word, score in sorted(who.iteritems(), key=lambda x:x[1], reverse=True)[:k_important]]
             # count_list = []
             event_json['persons'] = [{'mention':mention, 'score':'{:.2f}'.format(info['count']), 'linkedURL':info['linkedURL']}
-                                     for mention, info in sorted(persons.iteritems(), key=lambda x:x[1]['count'], reverse=True)]
+                                     for mention, info in sorted(persons.iteritems(), key=lambda x:x[1]['count'], reverse=True)[:k_important]]
             event_json['locationss'] = [{'mention':mention, 'score':'{:.2f}'.format(info['count']), 'linkedURL': info['linkedURL']}
-                                     for mention, info in sorted(locations.iteritems(), key=lambda x:x[1]['count'], reverse=True)]
+                                     for mention, info in sorted(locations.iteritems(), key=lambda x:x[1]['count'], reverse=True)[:k_important]]
             event_json['organizations'] = [{'mention':mention, 'score':'{:.2f}'.format(info['count']), 'linkedURL': info['linkedURL']}
-                                     for mention, info in sorted(organizations.iteritems(), key=lambda x:x[1]['count'], reverse=True)]
+                                     for mention, info in sorted(organizations.iteritems(), key=lambda x:x[1]['count'], reverse=True)[:k_important]]
             # 先暫時以keywords最大的關鍵字作為label, 到時候可以換成mention或其他keywords
-            event_json['label'] = event_json['keywords'][0]['word']
+            event_json['label'] = " ".join(i['word'] for i in event_json['keywords'][:3])
             # 本方法為考量全部keywords > 0.6的關鍵字, 並串聯再一起
             # event_json['label'] = " ".join([keyword for keyword in event_json['keywords'] if keyword['score'] > 0.6])
 
@@ -610,10 +621,20 @@ class Model():
         out.close()
         # id_out.close()
 
-        mse_out = open(os.path.join(outbase, "mse"+str(self.__date)), "w")
-        for mse in sorted(self.mse, reverse=True):
-            mse_out.write(str(mse) + "\n")
-        mse_out.close()
+        # mse_out = open(os.path.join(outbase, "mse"+str(self.__date)), "w")
+        # for mse in sorted(self.mse, reverse=True):
+        #     mse_out.write(str(mse) + "\n")
+        # mse_out.close()
+
+        cos_out = open(os.path.join(outbase, "cos" + str(self.__date)), "w")
+        for cos in sorted(self.cos, reverse=True):
+            cos_out.write(str(cos) + "\n")
+        cos_out.close()
+
+        cos_out = open(os.path.join(outbase, "cos_std" + str(self.__date)), "w")
+        for cos in sorted(self.cos_std, reverse=True):
+            cos_out.write(str(cos) + "\n")
+        cos_out.close()
 
     def write_log(self, time_info):
         """
@@ -632,7 +653,8 @@ class Model():
                   'clustering_sim':self.__sim_thres,
                   'merge_sim':self.__merge_sim_thres,
                   'subevent_sim':self.__subevent_sim_thres,
-                  'mse':self.__mse_thres,
+                  # 'mse':self.__mse_thres,
+                  'cos': self.__cos_thres,
                   'n_news':self.__news_count,
                   'n_single_event':self.__single_count,
                   'n_events':len(self.__clusters_id)}
@@ -644,7 +666,7 @@ class Model():
     def output(self, time_info):
         (start_time_ts, start_time_t), (end_time_ts, end_time_t) = time_info
         print "Write event"
-        self.write_event(t=start_time_t)
+        self.write_event(start_time_t=start_time_t)
         self.write_result()
         self.write_log(time_info=time_info)
 
@@ -659,6 +681,7 @@ class Model():
         """
         (start_time_ts, start_time_t), (end_time_ts, end_time_t) = time_info
         self.__date = self.__event_reader.create_event_id(t=start_time_t)
+        # 僅僅在有讀入新聞時才做clustering, 否則則直接留下log
         if news_list.count():
             cluster_triple = self.clustering_news(news_list=news_list)
             self.merge_events(time_info=time_info, cluster_triple=cluster_triple)
@@ -682,7 +705,7 @@ def test_model():
 
     print "test news/events reader"
     news_reader = NewsReader(uri=IP_PORT)
-    event_reader = EventReader(uri=IP_PORT)
+    event_reader = EventReader(uri=IP_PORT, event_name="test_en_event")
     # clear event collection
     event_reader.remove_collection()
     print "---------------"

@@ -6,13 +6,6 @@ import time
 from pymongo import MongoClient
 
 class Reader():
-    def __init__(self, uri):
-        self._db_name = "NES"
-        self._news_collection_name = "en_news"
-        self._event_collection_name = "en_event"
-        self.client = MongoClient(uri)
-        self.db = self.client[self._db_name]
-
     def parse_uri(self, host, username, pswd):
         uri = "mongodb://" + username + ":" + pswd + "@" + host + "?authSource=source"
         return uri
@@ -48,8 +41,10 @@ class Reader():
             return json.loads(f.read())
 
 class NewsReader(Reader):
-    def __init__(self, uri):
-        Reader.__init__(self, uri=uri)
+    def __init__(self, uri, news_name="en_news", db_name="NES"):
+        client = MongoClient(uri)
+        self.db = client[db_name]
+        self._news_collection_name = news_name
         self.init_mongoDB()
 
     def init_mongoDB(self):
@@ -108,8 +103,10 @@ class NewsReader(Reader):
         return result
 
 class EventReader(Reader):
-    def __init__(self, uri, window=10):
-        Reader.__init__(self, uri=uri)
+    def __init__(self, uri, event_name="en_event", db_name="NES", window=10):
+        client = MongoClient(uri)
+        self.db = client[db_name]
+        self._event_collection_name = event_name
         self.init_mongoDB()
         self.day_diff = 86400
         self.window = window
@@ -126,11 +123,6 @@ class EventReader(Reader):
 
     def remove_collection(self):
         self.event_collection.remove()
-
-    def test(self):
-        result = self.event_collection.find()
-        for i in result:
-            print i
 
     def insert_item(self, item):
         result = self.event_collection.insert(item)
@@ -155,6 +147,11 @@ class EventReader(Reader):
         self.event_collection.update({"updated": {"$lt": t}, "closed":""}, {"$set":{"closed":t}}, upsert=False, multi=True)
 
     def query_recent_events_by_time(self, t):
+        """
+        根據給的時間去database查詢之前的event, 並將 t 時間段以前, 並有一個時間段沒有更新的event關閉
+        :param t:
+        :return:
+        """
         last_time = int(Reader.time2time_stamp(self, t) - self.day_diff * self.window)
         last_time = Reader.time_stamp2time(self, last_time)
         self.close_events(last_time)
@@ -167,7 +164,7 @@ class EventReader(Reader):
         :param end_time: 結束時間 (time.time() 現在運行時間)
         :return: result: 查詢結果
         """
-        result = self.event_collection.find({"updated": {"$gt": start_time, "$lt": end_time}})
+        result = self.event_collection.find({"updated": {"$gt": start_time, "$lt": end_time}, "closed": ""})
         # for i in result:
         #     print i
         return result
@@ -204,13 +201,8 @@ def test_news():
         print "-----------------------"
 
 def test_event():
-    # news_reader = NewsReader(uri='localhost')
-    # news_list = news_reader.query_mongoDB_by_time(start_time="2016-11-20 16:00:00", end_time="2016-11-20 18:00:00")
     IP_PORT = "10.1.1.46:27017"
     event_reader = EventReader(uri=IP_PORT)
-    # result = event_reader.query_recent_events_by_time(t="2016-07-30 16:00:00")
-    # ts = event_reader.time2time_stamp(t="2016-07-27 16:00:00")
-    # result = event_reader.query_recent_events_by_time("2016-07-31 16:00:00")
     result = event_reader.query_many_by_time("2016-07-25 16:00:00", "2016-07-30 16:00:00")
     for i in result:
         # print i['articles']
