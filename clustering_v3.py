@@ -328,12 +328,12 @@ class Model():
             cent_vec = self.__centroids[event_id]
             if len(vecs) > 1:
                 # mse = self._func.get_mse(vecs, cent_vec)
-                cos_std = self._func.get_cos(vecs, cent_vec)
+                cos, cos_std = self._func.get_cos(vecs, cent_vec)
                 # self.mse.append(mse)
-                # self.cos.append(cos)
+                self.cos.append(cos)
                 self.cos_std.append(cos_std)
-                if cos_std > 0.06:
-                # if cos > self.__cos_thres:
+                # if cos > 0.2:
+                if cos_std > 0.055:
                     cluster = (event_id, vecs)
                     n_clusters_vec, n_clusters_id, n_centroids = self.split_cluster(cluster=cluster)
                     clusters_vec.update(n_clusters_vec)

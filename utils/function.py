@@ -58,9 +58,9 @@ class Function():
         rows, cols = vecs.shape
         # centroid = np.mean(vecs, axis=0)
         centroid_all = np.tile(centroid, (rows, 1))
-        # COS = np.mean(distance.cdist(vecs, centroid_all, 'cosine'))
+        COS = np.mean(distance.cdist(vecs, centroid_all, 'cosine'))
         COS_STD = np.std(np.mean(distance.cdist(vecs, centroid_all, 'cosine'), axis=1))
-        return COS_STD
+        return COS, COS_STD
 
     def vectorize_single_news(self, dim, news_dict):
         id_matrix = np.eye(dim)
@@ -72,6 +72,8 @@ class Function():
         vector = np.zeros(dim)
         word_count = 0
         for word in news_stem:
+            if word_count > 250:
+                break
             try:
                 vector += id_matrix[int(self.word_model[word])]
                 word_count += 1
