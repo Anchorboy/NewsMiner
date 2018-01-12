@@ -1,13 +1,15 @@
 # -*- coding:utf-8 -*-
-import os
 import json
+import os
+import time
+from datetime import *
+
 import numpy as np
 from tqdm import tqdm
-from datetime import *
-import time
-from header import get_event_json
+
 from utils.function import Function
-from utils.reader import EventReader, NewsReader
+from utils.header import get_event_json
+
 
 class Model():
     def __init__(self, config, news_reader, event_reader):
@@ -41,9 +43,7 @@ class Model():
         self.__start = time.time()
         self.__date = ""
         current_base = os.path.abspath('.')
-        self.out_path = os.path.join(current_base, "Output",
-                               's' + str(self.__sim_thres) + 'ms' + str(self.__merge_sim_thres) + 'sub' + str(
-                                   self.__subevent_sim_thres) + 'dim' + str(self.__dim))
+        self.output_path = self.config.output_path
         self.log_path = os.path.join(current_base, "log")
 
     def vectorize_mongolist(self, news_list):
@@ -63,7 +63,7 @@ class Model():
             news_id = news_dict['_id']
             self.__news[news_id] = news_dict
             news_stem_content = news_dict['stemContent']
-            news_lower_content = news_dict['lowerContent']
+            # news_lower_content = news_dict['lowerContent']
             news_len = len(news_stem_content)
 
             if news_len > self.__min_news_len:
@@ -280,7 +280,7 @@ class Model():
         self.__centroids[event_id] = n_centroids[event_id]
 
         if output:
-            outbase = self.out_path
+            outbase = self.output_path
             if not os.path.exists(outbase):
                 os.mkdir(outbase)
 
@@ -313,7 +313,7 @@ class Model():
     def reevalute_centroids(self):
         """
         對cluster centroids重新評估, 重新計算一次聚類中心並評估是否需要分裂
-        目前方法: MSE
+        目前方法: cosine
         :return:
         """
         # self.__centroids = { key : np.mean(self.__clusters_vec[key], axis=0) for key in self.__clusters_vec }
@@ -484,100 +484,65 @@ class Model():
             # 衰退率 decay = 1.0 / n_news, 此假設為聚類最外圍的新聞權重最小, 如果有10筆新聞, 最後一個新聞權重為0.1
             # sim_list 為最靠近中心的新聞sort list
             weight = 1.0
-            decay = 1.0 / len(sim_list)
+            decay = 0.99
             # {word:score}
             keywords = {}
             persons = {}
             locations = {}
             organizations = {}
             entities = {}
-            when = {}
-            who = {}
-            where = {}
+            when_dict = {}
+            who_dict = {}
+            where_dict = {}
+
+            def update_score(input_list, update_dict, weight):
+                for keyword in input_list:
+                    wd = keyword['word']
+                    score = keyword['score']
+                    if wd not in update_dict:
+                        update_dict[wd] = score * weight
+                    else:
+                        update_dict[wd] += score * weight
+
+            def update_ner_score(input_list, update_dict, weight):
+                for keyword in input_list:
+                    mention = keyword['mention']
+                    count = keyword['count'] * weight
+                    url = keyword['linkedURL']
+                    if mention not in update_dict:
+                        update_dict[mention] = {'count':count, 'linkedURL':url}
+                    else:
+                        update_dict[mention]['count'] += count
+
             for vid, _ in sim_list:
                 news_id = self.__clusters_id[event_id][vid]
                 news = self.__news[news_id]
                 # 關鍵詞抽取
-                news_keywords_list = news['keywords']
-                for keyword in news_keywords_list:
-                    wd = keyword['word']
-                    score = keyword['score']
-                    if wd not in keywords:
-                        keywords[wd] = score * weight
-                    else:
-                        keywords[wd] += score * weight
+                update_score(news['keywords'], keywords, weight)
 
                 # when, where, who抽取
-                news_when_list = news['when']
-                for keyword in news_when_list:
-                    wd = keyword['word']
-                    score = keyword['score']
-                    if wd not in when:
-                        when[wd] = score * weight
-                    else:
-                        when[wd] += score * weight
-
-                news_where_list = news['where']
-                for keyword in news_where_list:
-                    wd = keyword['word']
-                    score = keyword['score']
-                    if wd not in where:
-                        where[wd] = score * weight
-                    else:
-                        where[wd] += score * weight
-
-                news_who_list = news['who']
-                for keyword in news_who_list:
-                    wd = keyword['word']
-                    score = keyword['score']
-                    if wd not in who:
-                        who[wd] = score * weight
-                    else:
-                        who[wd] += score * weight
+                update_score(news['when'], when_dict, weight)
+                update_score(news['where'], where_dict, weight)
+                update_score(news['who'], who_dict, weight)
 
                 # person, locations, organizations抽取
                 # 暫時先用count作為score, 之後考慮打分機制
                 # 目前加上score考慮方式: 由count做打分, 並乘上weight, 隨著遠離cluster中心遞減
-                news_persons_list = news['persons']
-                for person in news_persons_list:
-                    mention = person['mention']
-                    count = person['count'] * weight
-                    url = person['linkedURL']
-                    if mention not in persons:
-                        persons[mention] = {'count':count, 'linkedURL':url}
-                    else:
-                        persons[mention]['count'] += count
+                update_ner_score(news['persons'], persons, weight)
+                update_ner_score(news['locations'], locations, weight)
+                update_ner_score(news['organizations'], organizations, weight)
 
-                news_locations_list = news['locations']
-                for location in news_locations_list:
-                    mention = location['mention']
-                    count = location['count'] * weight
-                    url = location['linkedURL']
-                    if mention not in locations:
-                        locations[mention] = {'count': count, 'linkedURL': url}
-                    else:
-                        locations[mention]['count'] += count
-
-                news_organizations_list = news['organizations']
-                for organization in news_organizations_list:
-                    mention = organization['mention']
-                    count = organization['count'] * weight
-                    url = organization['linkedURL']
-                    if mention not in organizations:
-                        organizations[mention] = {'count': count, 'linkedURL': url}
-                    else:
-                        organizations[mention]['count'] += count
-                weight -= decay
+                weight *= decay
             # 把生成的全部要素關鍵放回event_json
             k_important = 10
             event_json['keywords'] = [{'word':word, 'score':'{:.2f}'.format(score)} for word, score in sorted(keywords.iteritems(), key=lambda x:x[1], reverse=True)[:k_important]]
-            event_json['when'] = [{'word':word, 'score':'{:.2f}'.format(score)} for word, score in sorted(when.iteritems(), key=lambda x:x[1], reverse=True)[:k_important]]
-            event_json['where'] = [{'word':word, 'score':'{:.2f}'.format(score)} for word, score in sorted(where.iteritems(), key=lambda x:x[1], reverse=True)[:k_important]]
-            event_json['who'] = [{'word':word, 'score':'{:.2f}'.format(score)} for word, score in sorted(who.iteritems(), key=lambda x:x[1], reverse=True)[:k_important]]
+            event_json['when'] = [{'word':word, 'score':'{:.2f}'.format(score)} for word, score in sorted(when_dict.iteritems(), key=lambda x:x[1], reverse=True)[:k_important]]
+            event_json['where'] = [{'word':word, 'score':'{:.2f}'.format(score)} for word, score in sorted(where_dict.iteritems(), key=lambda x:x[1], reverse=True)[:k_important]]
+            event_json['who'] = [{'word':word, 'score':'{:.2f}'.format(score)} for word, score in sorted(who_dict.iteritems(), key=lambda x:x[1], reverse=True)[:k_important]]
             # count_list = []
             event_json['persons'] = [{'mention':mention, 'score':'{:.2f}'.format(info['count']), 'linkedURL':info['linkedURL']}
                                      for mention, info in sorted(persons.iteritems(), key=lambda x:x[1]['count'], reverse=True)[:k_important]]
-            event_json['locationss'] = [{'mention':mention, 'score':'{:.2f}'.format(info['count']), 'linkedURL': info['linkedURL']}
+            event_json['locations'] = [{'mention':mention, 'score':'{:.2f}'.format(info['count']), 'linkedURL': info['linkedURL']}
                                      for mention, info in sorted(locations.iteritems(), key=lambda x:x[1]['count'], reverse=True)[:k_important]]
             event_json['organizations'] = [{'mention':mention, 'score':'{:.2f}'.format(info['count']), 'linkedURL': info['linkedURL']}
                                      for mention, info in sorted(organizations.iteritems(), key=lambda x:x[1]['count'], reverse=True)[:k_important]]
@@ -601,7 +566,7 @@ class Model():
         輸出聚類結果
         :return:
         """
-        outbase = self.out_path
+        outbase = self.output_path
         if not os.path.exists(outbase):
             os.mkdir(outbase)
 
@@ -663,11 +628,12 @@ class Model():
         with open(os.path.join(logbase, "log.json"), "w") as f:
             f.write(json.dumps(params))
 
-    def output(self, time_info):
+    def output(self, time_info, debug=False):
         (start_time_ts, start_time_t), (end_time_ts, end_time_t) = time_info
         print "Write event"
         self.write_event(start_time_t=start_time_t)
-        self.write_result()
+        if debug:
+            self.write_result()
         self.write_log(time_info=time_info)
 
     def run(self, news_list, time_info):

@@ -58,7 +58,8 @@ def main(args):
     print "reading news"
     news_reader = NewsReader(uri=config.ip_port)
     event_reader = EventReader(uri=config.ip_port)
-    news_list = news_reader.query_many_by_time(start_time=config.start_time_t, end_time=config.end_time_t)
+    print config.start_time_t, config.end_time_t
+    news_list = news_reader.query_many_by_time(start_time="2016-07-18 15:00:00", end_time="2016-07-19 15:00:00")
     print "---------------"
 
     print "start clustering"
@@ -99,6 +100,10 @@ if __name__ == "__main__":
                             help="Subevent similarity threshold. default=0.75")
     cmd_parser.add_argument("-ms", '--merge_sim', default=0.75, type=float,
                             help="Merge similarity threshold. default=0.75")
+    cmd_parser.add_argument("-st", '--start_time_t', type=str,
+                            help="fomat 2018-01-01 17:00:00")
+    cmd_parser.add_argument("-et", '--end_time_t', type=str,
+                            help="fomat 2018-01-01 17:00:00")
     cmd_parser.set_defaults(func=main)
 
     ARGS = parser.parse_args()

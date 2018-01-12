@@ -24,24 +24,29 @@ class Config:
         log_dir = os.path.join('log')
         log_file = os.path.join(log_dir, 'log.json')
         print "get previous time"
-        now = datetime.now()
-        end_time_t = now.strftime("%Y-%m-%d %H:%M:%S")
-
-        if os.path.exists(log_dir) and os.path.exists(log_file):
-            with open(log_file, "r") as f:
-                log_dict = json.loads(f.read())
-            start_time_t = log_dict['end']
+        if not args.end_time_t or not args.start_time_t:
+            now = datetime.now()
+            end_time_t = now.strftime("%Y-%m-%d %H:%M:%S")
+            if os.path.exists(log_dir) and os.path.exists(log_file):
+                with open(log_file, "r") as f:
+                    log_dict = json.loads(f.read())
+                start_time_t = log_dict['end']
+            else:
+                day_diff = 86400
+                day_window = args.day_window
+                start_time_ts = float(int(time.time() - day_diff * day_window))
+                start_time_t = func.time_stamp2time(start_time_ts)
         else:
-            day_diff = 86400
-            day_window = args.day_window
-            start_time_ts = float(int(time.time() - day_diff * day_window))
-            start_time_t = func.time_stamp2time(start_time_ts)
+            end_time_t = args.end_time_t
+            start_time_t = args.start_time_t
+
         assert (not start_time_t == end_time_t)
         time_info = func.generate_timeinfo(start_t=start_time_t, end_t=end_time_t)
+        print time_info
 
         # --- time here
         self.start_time_t = start_time_t
-        self.end_time_t = start_time_t
+        self.end_time_t = end_time_t
         self.time_info = time_info
 
         # --- args here
@@ -52,3 +57,6 @@ class Config:
         self.sim_thres = args.sim
         self.subevent_sim_thres = args.sub_sim
         self.merge_sim_thres = args.merge_sim
+
+        self.output_path = os.path.join("Output",
+                                        's{}ms{}sub{}dim{}'.format(self.sim_thres, self.merge_sim_thres, self.subevent_sim_thres, self.dim))

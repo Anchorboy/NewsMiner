@@ -1,14 +1,15 @@
 # -*- coding:utf-8 -*-
-import os
 import json
+import os
+import time
+from datetime import *
+
 import numpy as np
 from tqdm import tqdm
-from datetime import *
-import time
-from header import get_event_json
-from utils.function import Function
-from utils.reader import EventReader, NewsReader
 
+from utils.function import Function
+from utils.header import get_event_json
+from utils.reader import EventReader, NewsReader
 
 class Model():
     def __init__(self, dim, class_file, news_reader, event_reader, sim_thres=0.7, merge_sim_thres=0.7, subevent_sim_thres=0.7):
@@ -260,7 +261,7 @@ class Model():
             time.sleep(0.3)
 
     # input = (cluster_id, [vecs]) // cluster info
-    def split_cluster(self, cluster):
+    def split_cluster(self, cluster, output=False):
         """
         將評估過需要分裂的聚類放入function, 重新用online clustering聚類
         保留重新聚類的cluster[0]作為原本放入的聚類代表, 並在聚類時賦予父子關係
@@ -279,29 +280,30 @@ class Model():
         self.__clusters_id[event_id] = n_clusters_id[event_id]
         self.__centroids[event_id] = n_centroids[event_id]
 
-        outbase = self.outbase
-        if not os.path.exists(outbase):
-            os.mkdir(outbase)
+        if output:
+            outbase = self.outbase
+            if not os.path.exists(outbase):
+                os.mkdir(outbase)
 
-        outbase = os.path.join(outbase, "SplitResult")
-        if not os.path.exists(outbase):
-            os.mkdir(outbase)
+            outbase = os.path.join(outbase, "SplitResult")
+            if not os.path.exists(outbase):
+                os.mkdir(outbase)
 
-        outbase = os.path.join(outbase, "Split")
-        if not os.path.exists(outbase):
-            os.mkdir(outbase)
+            outbase = os.path.join(outbase, "Split")
+            if not os.path.exists(outbase):
+                os.mkdir(outbase)
 
-        out_file = os.path.join(outbase, "split_event" + str(event_id))
-        out = open(out_file, "w")
-        out.write("Event " + str(event_id) + "\n")
-        for key in n_clusters_id:
-            news_id_all = n_clusters_id[key]
-            out.write("Cluster " + str(key) + " num = " + str(len(news_id_all)) + "\n")
-            for news_id in news_id_all:
-                if news_id in self.__news:
-                    result = self.__news[news_id]
-                    out.write("Title: " + result['title'] + " Time: " + result['crawlTime'] + " Content: " + result['content'] + "\n")
-        out.close()
+            out_file = os.path.join(outbase, "split_event" + str(event_id))
+            out = open(out_file, "w")
+            out.write("Event " + str(event_id) + "\n")
+            for key in n_clusters_id:
+                news_id_all = n_clusters_id[key]
+                out.write("Cluster " + str(key) + " num = " + str(len(news_id_all)) + "\n")
+                for news_id in news_id_all:
+                    if news_id in self.__news:
+                        result = self.__news[news_id]
+                        out.write("Title: " + result['title'] + " Time: " + result['crawlTime'] + " Content: " + result['content'] + "\n")
+            out.close()
 
         n_clusters_vec.pop(event_id)
         n_clusters_id.pop(event_id)
