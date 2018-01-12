@@ -5,6 +5,7 @@ sys.setdefaultencoding('utf8')
 import json
 from utils.reader import NewsReader, EventReader
 from utils.function import Function
+from utils.config import Config
 from clustering_v3 import Model
 from datetime import *
 import time
@@ -82,14 +83,14 @@ def main(args):
     print "---------------"
 
     print "start clustering"
-    clustering = Model(dim=args.dimension,
+    model = Model(dim=args.dimension,
                        sim_thres=args.sim,
                        merge_sim_thres=args.merge_sim,
                        subevent_sim_thres=args.sub_sim,
                        class_file=args.class_file,
                        news_reader=news_reader,
                        event_reader=event_reader)
-    clustering.main(news_list=news_list, time_info=time_info)
+    model.main(news_list=news_list, time_info=time_info)
     print "---------------"
 
 

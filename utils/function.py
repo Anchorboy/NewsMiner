@@ -3,10 +3,10 @@ import sys
 reload(sys)
 sys.setdefaultencoding( "utf-8" )
 import os
-import re
-from scipy.spatial import distance
 import numpy as np
+from scipy.spatial import distance
 from nltk.stem.porter import PorterStemmer
+from nltk.tokenize import word_tokenize
 from datetime import *
 import time
 
@@ -35,7 +35,6 @@ class Function():
                 self.stopwords.append(line.strip())
 
         self.porter_stemmer = PorterStemmer()
-        self.pattern = re.compile("[a-zA-Z]+")
 
     def cal_similarity(self, vec1, vec2):
         """
@@ -65,20 +64,16 @@ class Function():
     def vectorize_single_news(self, dim, news_dict):
         id_matrix = np.eye(dim)
 
-        news_id = news_dict['_id']
+        # news_id = news_dict['_id']
         news_stem = news_dict['stemContent'].split()
-        news_lower = news_dict['lowerContent'].split()
+        # news_lower = news_dict['lowerContent'].split()
 
         vector = np.zeros(dim)
         word_count = 0
         for word in news_stem:
-            if word_count > 250:
-                break
-            try:
+            if word in self.word_model:
                 vector += id_matrix[int(self.word_model[word])]
                 word_count += 1
-            except KeyError:
-                pass
 
         if word_count != 0:
             vector /= word_count
@@ -86,23 +81,19 @@ class Function():
 
     def preprocess(self, s):
         # preprocess here
-        tokens = s.strip().split()
+        tokens = word_tokenize(s.strip())
         stem_content = ""
         lower_content = ""
         for token in tokens:
-            match = re.match(self.pattern, token)
-            # regular expression
-            if match:
-                # remove stop words
-                if match.group().lower() not in self.stopwords:
-                    # stemming
-                    lower_token = match.group().lower()
-                    lower_content += lower_token + " "
-                    try:
-                        stem = self.porter_stemmer.stem(lower_token)
-                        stem_content += stem + " "
-                    except:
-                        pass
+            # remove stop words
+            token = token.lower()
+            if token not in self.stopwords:
+                lower_content += token + " "
+                try:
+                    stem = self.porter_stemmer.stem(token)
+                    stem_content += stem + " "
+                except:
+                    pass
         return lower_content, stem_content
 
     def simple_content_abs(self, content):
