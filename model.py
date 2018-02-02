@@ -2,7 +2,7 @@
 import json
 import os
 import time
-from datetime import *
+import datetime
 import pymongo
 from bson import ObjectId
 
@@ -44,7 +44,7 @@ class Model():
         self.__single_count = 0
         self.__news_reader = news_reader
         self.__event_reader = event_reader
-        self.__start = time.time()
+        self.__start = datetime.datetime.now()
         self.__date = ""
         current_base = os.path.abspath('.')
         self.output_path = self.config.output_path
@@ -410,7 +410,7 @@ class Model():
             # 沒有找到
             if not event_result:
                 event_json = get_event_json()
-                event_json['created'] = self._func.time2time_string(datetime.now())
+                event_json['created'] = self._func.time2time_string(datetime.datetime.now())
                 event_json['updated'] = start_time_t
             # 找到
             else:
@@ -547,11 +547,11 @@ class Model():
             # 把生成的全部要素關鍵放回event_json
             k_important = 20
             def normalize_entities(ent_dict, k_important):
-                if len(ent_dict) == 0:
-                    return []
+		if not ent_dict:
+			return []
                 sort_ent_list = sorted(ent_dict.iteritems(), key=lambda x:x[1], reverse=True)
-                word_list, score_list = zip(*sort_ent)
-                norm_score_list = preprocessing.normalize(score_list)[0]
+                word_list, score_list = zip(*sort_ent_list)
+                norm_score_list = preprocessing.normalize([score_list])[0]
                 return [{'word':word, 'score':'{:.2f}'.format(score)} for word, score in zip(word_list, norm_score_list)[:k_important]]
             
             # event_json['keywords'] = [{'word':word, 'score':'{:.2f}'.format(score)} for word, score in sorted(keywords.iteritems(), key=lambda x:x[1], reverse=True)[:k_important]]
@@ -561,13 +561,13 @@ class Model():
             event_json['who'] = normalize_entities(who_dict, k_important=k_important)
             # count_list = []
             def normalize_ner_entities(ent_dict, k_important=10):
-                if len(ent_dict) == 0:
-                    return []
+		if not ent_dict:
+			return []
                 sort_ent_list = sorted(ent_dict.iteritems(), key=lambda x:x[1]['count'], reverse=True)
-                mention_list, score_dict = zip(*sort_ent)
-                count_list = [i for i in score_dict['count']]
-                url_list = [i for i in score_dict['linkedURL']]
-                norm_score_list = preprocessing.normalize(score_list)[0]
+                mention_list, score_dict = zip(*sort_ent_list)
+                score_tuple = [(i['count'], i['linkedURL']) for i in score_dict]
+                count_list, url_list = zip(*score_tuple)
+                norm_score_list = preprocessing.normalize([count_list])[0]
                 return [{'mention':mention, 'count':'{:.2f}'.format(count), 'score':'{:.2f}'.format(score), 'linkedURL':url} for mention, count, score, url in zip(mention_list, count_list, norm_score_list, url_list)[:k_important]]
 
             # event_json['persons'] = [{'mention':mention, 'score':'{:.2f}'.format(info['count']), 'linkedURL':info['linkedURL']}
@@ -641,7 +641,7 @@ class Model():
         if not os.path.exists(logbase):
             os.mkdir(logbase)
 
-        params = {'cost':time.time()-self.__start,
+        params = {'cost':(datetime.datetime.now()-self.__start).seconds,
                   'start':self.start_time_t,
                   'end':self.end_time_t,
                   'clustering_sim':self.__sim_thres,
