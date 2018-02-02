@@ -3,11 +3,11 @@
   <component name="ChangeListManager">
     <list default="true" id="6ad6387b-8f1a-418d-8ced-e55bb6be7bf9" name="Default" comment="">
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/clustering_v3.py" afterPath="$PROJECT_DIR$/clustering_v3.py" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/main_18_1_12.py" afterPath="$PROJECT_DIR$/main_18_1_12.py" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/model.py" afterPath="$PROJECT_DIR$/model.py" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/utils/config.py" afterPath="$PROJECT_DIR$/utils/config.py" />
-      <change type="MOVED" beforePath="$PROJECT_DIR$/header.py" afterPath="$PROJECT_DIR$/utils/header.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/utils/function.py" afterPath="$PROJECT_DIR$/utils/function.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/utils/header.py" afterPath="$PROJECT_DIR$/utils/header.py" />
     </list>
     <ignored path="NewsMiner.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -26,104 +26,119 @@
     <favorites_list name="NewsMiner" />
   </component>
   <component name="FileEditorManager">
-    <splitter split-orientation="horizontal" split-proportion="0.5">
-      <split-first>
-        <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-          <file leaf-file-name="main_18_1_12.py" pinned="false" current-in-tab="false">
-            <entry file="file://$PROJECT_DIR$/main_18_1_12.py">
-              <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="1140">
-                  <caret line="60" column="48" lean-forward="false" selection-start-line="60" selection-start-column="48" selection-end-line="60" selection-end-column="48" />
-                  <folding>
-                    <element signature="e#0#9#0" expanded="true" />
-                  </folding>
-                </state>
-              </provider>
-            </entry>
-          </file>
-          <file leaf-file-name="model.py" pinned="false" current-in-tab="false">
-            <entry file="file://$PROJECT_DIR$/model.py">
-              <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="171">
-                  <caret line="9" column="22" lean-forward="true" selection-start-line="9" selection-start-column="22" selection-end-line="9" selection-end-column="22" />
-                  <folding />
-                </state>
-              </provider>
-            </entry>
-          </file>
-          <file leaf-file-name="config.py" pinned="false" current-in-tab="false">
-            <entry file="file://$PROJECT_DIR$/utils/config.py">
-              <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="1140">
-                  <caret line="60" column="49" lean-forward="true" selection-start-line="60" selection-start-column="49" selection-end-line="60" selection-end-column="49" />
-                  <folding>
-                    <element signature="e#0#9#0" expanded="true" />
-                  </folding>
-                </state>
-              </provider>
-            </entry>
-          </file>
-          <file leaf-file-name="clustering_v3.py" pinned="false" current-in-tab="false">
-            <entry file="file://$PROJECT_DIR$/clustering_v3.py">
-              <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="228">
-                  <caret line="12" column="0" lean-forward="false" selection-start-line="12" selection-start-column="0" selection-end-line="12" selection-end-column="0" />
-                  <folding>
-                    <element signature="e#23#34#0" expanded="true" />
-                  </folding>
-                </state>
-              </provider>
-            </entry>
-          </file>
-          <file leaf-file-name="reader.py" pinned="false" current-in-tab="true">
-            <entry file="file://$PROJECT_DIR$/utils/reader.py">
-              <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="2888">
-                  <caret line="166" column="68" lean-forward="false" selection-start-line="166" selection-start-column="68" selection-end-line="166" selection-end-column="68" />
-                  <folding>
-                    <element signature="e#42#53#0" expanded="true" />
-                    <element signature="e#193#290#0" expanded="false" />
-                    <element signature="e#334#458#0" expanded="false" />
-                    <element signature="e#502#539#0" expanded="false" />
-                    <element signature="e#582#586#0" expanded="false" />
-                    <element signature="e#629#633#0" expanded="false" />
-                    <element signature="e#674#678#0" expanded="false" />
-                    <element signature="e#744#748#0" expanded="false" />
-                    <element signature="e#797#801#0" expanded="false" />
-                    <element signature="e#851#855#0" expanded="false" />
-                    <element signature="e#899#969#0" expanded="false" />
-                  </folding>
-                </state>
-              </provider>
-            </entry>
-          </file>
-          <file leaf-file-name="function.py" pinned="false" current-in-tab="false">
-            <entry file="file://$PROJECT_DIR$/utils/function.py">
-              <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="194">
-                  <caret line="66" column="28" lean-forward="false" selection-start-line="66" selection-start-column="28" selection-end-line="66" selection-end-column="28" />
-                  <folding />
-                </state>
-              </provider>
-            </entry>
-          </file>
-        </leaf>
-      </split-first>
-      <split-second>
-        <leaf>
-          <file leaf-file-name="model.py" pinned="false" current-in-tab="true">
-            <entry file="file://$PROJECT_DIR$/model.py">
-              <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="2921">
-                  <caret line="187" column="18" lean-forward="false" selection-start-line="187" selection-start-column="18" selection-end-line="187" selection-end-column="18" />
-                  <folding />
-                </state>
-              </provider>
-            </entry>
-          </file>
-        </leaf>
-      </split-second>
-    </splitter>
+    <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
+      <file leaf-file-name="main.py" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/main.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="912">
+              <caret line="49" column="22" lean-forward="false" selection-start-line="49" selection-start-column="22" selection-end-line="49" selection-end-column="22" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="main_18_1_12.py" pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/main_18_1_12.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="1045">
+              <caret line="60" column="31" lean-forward="false" selection-start-line="60" selection-start-column="31" selection-end-line="60" selection-end-column="31" />
+              <folding>
+                <element signature="e#0#9#0" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="model.py" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/model.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="1387">
+              <caret line="83" column="50" lean-forward="false" selection-start-line="83" selection-start-column="50" selection-end-line="83" selection-end-column="50" />
+              <folding>
+                <element signature="e#23#34#0" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="header.py" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/utils/header.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="874">
+              <caret line="46" column="14" lean-forward="false" selection-start-line="46" selection-start-column="9" selection-end-line="46" selection-end-column="14" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="config.py" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/utils/config.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="76">
+              <caret line="8" column="23" lean-forward="false" selection-start-line="8" selection-start-column="23" selection-end-line="8" selection-end-column="23" />
+              <folding>
+                <element signature="e#0#9#0" expanded="true" />
+                <marker date="1517384935741" expanded="true" signature="980:993" ph="..." />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="reader.py" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/utils/reader.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="175">
+              <caret line="77" column="47" lean-forward="false" selection-start-line="77" selection-start-column="45" selection-end-line="77" selection-end-column="47" />
+              <folding>
+                <element signature="e#42#53#0" expanded="true" />
+                <element signature="e#193#290#0" expanded="false" />
+                <element signature="e#334#458#0" expanded="false" />
+                <element signature="e#502#539#0" expanded="false" />
+                <element signature="e#582#586#0" expanded="false" />
+                <element signature="e#629#633#0" expanded="false" />
+                <element signature="e#674#678#0" expanded="false" />
+                <element signature="e#744#748#0" expanded="false" />
+                <element signature="e#797#801#0" expanded="false" />
+                <element signature="e#851#855#0" expanded="false" />
+                <element signature="e#899#969#0" expanded="false" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="preprocess.py" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/preprocess.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="836">
+              <caret line="50" column="10" lean-forward="false" selection-start-line="50" selection-start-column="10" selection-end-line="50" selection-end-column="10" />
+              <folding>
+                <element signature="e#0#9#0" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="function.py" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/utils/function.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="1292">
+              <caret line="68" column="52" lean-forward="false" selection-start-line="68" selection-start-column="52" selection-end-line="68" selection-end-column="52" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="glove_test.py" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/utils/glove_test.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="665">
+              <caret line="41" column="17" lean-forward="false" selection-start-line="41" selection-start-column="17" selection-end-line="41" selection-end-column="17" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+    </leaf>
   </component>
   <component name="FileTemplateManagerImpl">
     <option name="RECENT_TEMPLATES">
@@ -134,36 +149,36 @@
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
-      <find>mse</find>
-      <find>output</find>
-      <find>online_clustering_me</find>
-      <find>get_mse</find>
-      <find>self.mse</find>
-      <find>0.2</find>
-      <find>cos</find>
-      <find>cos_var</find>
-      <find>self.cos_var</find>
-      <find>self.__cos_std</find>
-      <find>onlin</find>
-      <find>0.06</find>
-      <find>get_</find>
-      <find>15</find>
-      <find>self.cos</find>
-      <find>_id</find>
-      <find>ObjectId</find>
-      <find>self.__dim</find>
-      <find>sim_thres</find>
-      <find>mse_thres</find>
-      <find>start_time</find>
-      <find>time_info</find>
-      <find>cluster_trip</find>
-      <find>split</find>
-      <find>re</find>
-      <find>pattern</find>
-      <find>crawl</find>
-      <find>locations</find>
       <find>self.out_</find>
+      <find>class_fi</find>
       <find>header</find>
+      <find>cos_thre</find>
+      <find>cos_std</find>
+      <find>crawl</find>
+      <find>abstract</find>
+      <find>start_tim</find>
+      <find>read_events</find>
+      <find>datetime</find>
+      <find>class_file</find>
+      <find>'count</find>
+      <find>pbar.cl</find>
+      <find>article_c</find>
+      <find>ree</find>
+      <find>pbar</find>
+      <find>news_dict</find>
+      <find>news_dict in</find>
+      <find>title</find>
+      <find>tqdm</find>
+      <find>str</find>
+      <find>article_cou</find>
+      <find>time</find>
+      <find>_id</find>
+      <find>count</find>
+      <find>&quot;E&quot;</find>
+      <find>insert</find>
+      <find>idf</find>
+      <find>self.__date</find>
+      <find>time_info</find>
     </findStrings>
     <replaceStrings>
       <replace>organization</replace>
@@ -195,25 +210,27 @@
         <option value="$PROJECT_DIR$/Output/s0.7ms0.7sub0.7dim2200/mse20160726160000" />
         <option value="$PROJECT_DIR$/reader.py" />
         <option value="$PROJECT_DIR$/test/test.py" />
-        <option value="$PROJECT_DIR$/utils/reader.py" />
         <option value="$PROJECT_DIR$/clustering_18.1.12.py" />
         <option value="$PROJECT_DIR$/main_18.1.12.py" />
         <option value="$PROJECT_DIR$/main.py" />
         <option value="$PROJECT_DIR$/idf.py" />
-        <option value="$PROJECT_DIR$/utils/function.py" />
-        <option value="$PROJECT_DIR$/main_18_1_12.py" />
-        <option value="$PROJECT_DIR$/utils/config.py" />
         <option value="$PROJECT_DIR$/test_model.py" />
-        <option value="$PROJECT_DIR$/model.py" />
         <option value="$PROJECT_DIR$/clustering_v3.py" />
+        <option value="$PROJECT_DIR$/model_offline.py" />
+        <option value="$PROJECT_DIR$/utils/header.py" />
+        <option value="$PROJECT_DIR$/preprocess.py" />
+        <option value="$PROJECT_DIR$/utils/function.py" />
+        <option value="$PROJECT_DIR$/utils/config.py" />
+        <option value="$PROJECT_DIR$/main_18_1_12.py" />
+        <option value="$PROJECT_DIR$/model.py" />
+        <option value="$PROJECT_DIR$/utils/reader.py" />
       </list>
     </option>
   </component>
   <component name="ProjectFrameBounds">
-    <option name="x" value="-8" />
-    <option name="y" value="-8" />
-    <option name="width" value="1924" />
-    <option name="height" value="1056" />
+    <option name="x" value="-7" />
+    <option name="width" value="974" />
+    <option name="height" value="1047" />
   </component>
   <component name="ProjectView">
     <navigator currentView="ProjectPane" proportions="" version="1">
@@ -253,7 +270,7 @@
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
             <PATH_ELEMENT>
-              <option name="myItemId" value="model" />
+              <option name="myItemId" value="utils" />
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
           </PATH>
@@ -263,7 +280,7 @@
     </panes>
   </component>
   <component name="PropertiesComponent">
-    <property name="last_opened_file_path" value="$PROJECT_DIR$/../../GitProject/Deep-Learning-Assignment" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/../../Git/tensor2tensor" />
     <property name="settings.editor.selected.configurable" value="com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable" />
   </component>
   <component name="RecentsManager">
@@ -550,16 +567,16 @@
     </todo-panel>
   </component>
   <component name="ToolWindowManager">
-    <frame x="-8" y="-8" width="1924" height="1056" extended-state="0" />
+    <frame x="-7" y="0" width="974" height="1047" extended-state="1" />
     <layout>
-      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.277897" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
+      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.5667396" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32502708" sideWeight="0.50842994" order="7" side_tool="true" content_ui="tabs" />
       <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.37635574" sideWeight="0.4915701" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.329718" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Python Console" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
-      <window_info id="Terminal" active="true" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.27657267" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
+      <window_info id="Terminal" active="true" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.33296824" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.3991323" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="2" side_tool="true" content_ui="tabs" />
       <window_info id="Data View" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32995737" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
@@ -571,6 +588,26 @@
       <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Ant Build" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
     </layout>
+    <layout-to-restore>
+      <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
+      <window_info id="Cvs" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
+      <window_info id="Message" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
+      <window_info id="Commander" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
+      <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32502708" sideWeight="0.50842994" order="7" side_tool="true" content_ui="tabs" />
+      <window_info id="Inspection" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="5" side_tool="false" content_ui="tabs" />
+      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.37635574" sideWeight="0.4915701" order="2" side_tool="false" content_ui="tabs" />
+      <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.329718" sideWeight="0.5" order="8" side_tool="false" content_ui="tabs" />
+      <window_info id="Python Console" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="9" side_tool="false" content_ui="tabs" />
+      <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.4251627" sideWeight="0.5" order="10" side_tool="false" content_ui="tabs" />
+      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.277897" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
+      <window_info id="Hierarchy" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="2" side_tool="false" content_ui="combo" />
+      <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
+      <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
+      <window_info id="Ant Build" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
+      <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.3991323" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
+      <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="2" side_tool="true" content_ui="tabs" />
+      <window_info id="Data View" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32995737" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
+    </layout-to-restore>
   </component>
   <component name="Vcs.Log.Tabs.Properties">
     <option name="TAB_STATES">
@@ -616,34 +653,6 @@
     <watches-manager />
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/Output/s0.7ms0.75sub0.7dim2200/SplitResult/Split/split_event20160822160000E3369">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="0">
-          <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/Output/s0.7ms0.75sub0.7dim2200/SplitResult/Split/split_event20160822160000E2416">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="0">
-          <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/Output/s0.7ms0.75sub0.7dim2200/SplitResult/Split/split_event20160822160000E814">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="0">
-          <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/Output/s0.7ms0.75sub0.7dim2200/SplitResult/Split/split_event20160822160000E274">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="57">
-          <caret line="2" column="234" lean-forward="true" selection-start-line="2" selection-start-column="234" selection-end-line="2" selection-end-column="234" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/Output/s0.7ms0.75sub0.7dim2200/SplitResult/Split/split_event20160822160000E96">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="0">
@@ -805,74 +814,19 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/Output/s0.7ms0.75sub0.75dim2200/SplitResult/Split/split_event20160715160000E846">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="0">
-          <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/Output/s0.7ms0.75sub0.75dim2200/SplitResult/Split/split_event20160715160000E849">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="0">
-          <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/Output/s0.7ms0.75sub0.75dim2200/SplitResult/Split/split_event20160715160000E851">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-28523">
-          <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/Output/s0.7ms0.75sub0.75dim2200/SplitResult/Split/split_event20160715160000E921">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="0">
-          <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/Output/s0.7ms0.75sub0.75dim2200/mse20160923160000">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-1653">
-          <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="10" selection-end-column="17" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/Output/s0.7ms0.75sub0.75dim2200/mse20160930160000">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="77">
-          <caret line="2133" column="0" lean-forward="false" selection-start-line="2133" selection-start-column="0" selection-end-line="2133" selection-end-column="17" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/Output/s0.7ms0.75sub0.75dim2200/cluster8">
-      <provider selected="true" editor-type-id="LargeFileEditor">
-        <state relative-caret-position="0">
-          <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/Output/s0.7ms0.75sub0.75dim2200/mse20160722160000">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="57">
-          <caret line="3" column="16" lean-forward="false" selection-start-line="3" selection-start-column="16" selection-end-line="3" selection-end-column="16" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/Output/s0.7ms0.75sub0.75dim2200/mse20160715160000">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-18526">
-          <caret line="133" column="17" lean-forward="false" selection-start-line="133" selection-start-column="17" selection-end-line="133" selection-end-column="17" />
-        </state>
-      </provider>
-    </entry>
+    <entry file="file://$PROJECT_DIR$/Output/s0.7ms0.75sub0.75dim2200/SplitResult/Split/split_event20160715160000E846" />
+    <entry file="file://$PROJECT_DIR$/Output/s0.7ms0.75sub0.75dim2200/SplitResult/Split/split_event20160715160000E849" />
+    <entry file="file://$PROJECT_DIR$/Output/s0.7ms0.75sub0.75dim2200/SplitResult/Split/split_event20160715160000E851" />
+    <entry file="file://$PROJECT_DIR$/Output/s0.7ms0.75sub0.75dim2200/SplitResult/Split/split_event20160715160000E921" />
+    <entry file="file://$PROJECT_DIR$/Output/s0.7ms0.75sub0.75dim2200/mse20160923160000" />
+    <entry file="file://$PROJECT_DIR$/Output/s0.7ms0.75sub0.75dim2200/mse20160930160000" />
+    <entry file="file://$PROJECT_DIR$/Output/s0.7ms0.75sub0.75dim2200/cluster8" />
+    <entry file="file://$PROJECT_DIR$/Output/s0.7ms0.75sub0.75dim2200/mse20160722160000" />
+    <entry file="file://$PROJECT_DIR$/Output/s0.7ms0.75sub0.75dim2200/mse20160715160000" />
     <entry file="file://$PROJECT_DIR$/log/log.json">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="0">
           <caret line="0" column="22" lean-forward="false" selection-start-line="0" selection-start-column="22" selection-end-line="0" selection-end-column="22" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -880,110 +834,80 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="-2008">
           <caret line="196" column="22" lean-forward="false" selection-start-line="196" selection-start-column="22" selection-end-line="196" selection-end-column="22" />
-          <folding>
-            <element signature="e#659#672#0" expanded="false" />
-          </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/clustering_18.1.12.py">
+    <entry file="file://$PROJECT_DIR$/clustering_18.1.12.py" />
+    <entry file="file://$PROJECT_DIR$/main_18.1.12.py" />
+    <entry file="file://$PROJECT_DIR$/clustering_18_1_12.py" />
+    <entry file="file://$PROJECT_DIR$/idf.py" />
+    <entry file="file://$PROJECT_DIR$/test_model.py" />
+    <entry file="file://$PROJECT_DIR$/model_offline.py" />
+    <entry file="file://$PROJECT_DIR$/utils/glove_test.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="0">
-          <caret line="12" column="29" lean-forward="true" selection-start-line="12" selection-start-column="29" selection-end-line="12" selection-end-column="29" />
+        <state relative-caret-position="665">
+          <caret line="41" column="17" lean-forward="false" selection-start-line="41" selection-start-column="17" selection-end-line="41" selection-end-column="17" />
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/main_18.1.12.py">
+    <entry file="file://$PROJECT_DIR$/clustering_v3.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="152">
-          <caret line="56" column="4" lean-forward="false" selection-start-line="56" selection-start-column="4" selection-end-line="72" selection-end-column="40" />
-          <folding />
+        <state relative-caret-position="646">
+          <caret line="58" column="13" lean-forward="false" selection-start-line="58" selection-start-column="13" selection-end-line="58" selection-end-column="13" />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/main.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-1928">
-          <caret line="8" column="18" lean-forward="false" selection-start-line="8" selection-start-column="18" selection-end-line="8" selection-end-column="18" />
-          <folding>
-            <element signature="e#0#9#0" expanded="false" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/clustering_18_1_12.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="0">
-          <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/idf.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="0">
-          <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/utils/function.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="194">
-          <caret line="66" column="28" lean-forward="false" selection-start-line="66" selection-start-column="28" selection-end-line="66" selection-end-column="28" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/test_model.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="57">
-          <caret line="3" column="6" lean-forward="false" selection-start-line="3" selection-start-column="6" selection-end-line="3" selection-end-column="6" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
+    <entry file="file://$PROJECT_DIR$/../code/utils/glove_test.py" />
     <entry file="file://$PROJECT_DIR$/utils/header.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="2052">
-          <caret line="108" column="0" lean-forward="false" selection-start-line="108" selection-start-column="0" selection-end-line="108" selection-end-column="0" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/main_18_1_12.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1140">
-          <caret line="60" column="48" lean-forward="false" selection-start-line="60" selection-start-column="48" selection-end-line="60" selection-end-column="48" />
-          <folding>
-            <element signature="e#0#9#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/model.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="171">
-          <caret line="9" column="22" lean-forward="true" selection-start-line="9" selection-start-column="22" selection-end-line="9" selection-end-column="22" />
+        <state relative-caret-position="874">
+          <caret line="46" column="14" lean-forward="false" selection-start-line="46" selection-start-column="9" selection-end-line="46" selection-end-column="14" />
           <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/utils/config.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1140">
-          <caret line="60" column="49" lean-forward="true" selection-start-line="60" selection-start-column="49" selection-end-line="60" selection-end-column="49" />
+        <state relative-caret-position="76">
+          <caret line="8" column="23" lean-forward="false" selection-start-line="8" selection-start-column="23" selection-end-line="8" selection-end-column="23" />
+          <folding>
+            <element signature="e#0#9#0" expanded="true" />
+            <marker date="1517384935741" expanded="true" signature="980:993" ph="..." />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/preprocess.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="836">
+          <caret line="50" column="10" lean-forward="false" selection-start-line="50" selection-start-column="10" selection-end-line="50" selection-end-column="10" />
           <folding>
             <element signature="e#0#9#0" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/clustering_v3.py">
+    <entry file="file://$PROJECT_DIR$/utils/function.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="228">
-          <caret line="12" column="0" lean-forward="false" selection-start-line="12" selection-start-column="0" selection-end-line="12" selection-end-column="0" />
+        <state relative-caret-position="1292">
+          <caret line="68" column="52" lean-forward="false" selection-start-line="68" selection-start-column="52" selection-end-line="68" selection-end-column="52" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/main.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="912">
+          <caret line="49" column="22" lean-forward="false" selection-start-line="49" selection-start-column="22" selection-end-line="49" selection-end-column="22" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/model.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="1387">
+          <caret line="83" column="50" lean-forward="false" selection-start-line="83" selection-start-column="50" selection-end-line="83" selection-end-column="50" />
           <folding>
             <element signature="e#23#34#0" expanded="true" />
           </folding>
@@ -992,8 +916,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/utils/reader.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="2888">
-          <caret line="166" column="68" lean-forward="false" selection-start-line="166" selection-start-column="68" selection-end-line="166" selection-end-column="68" />
+        <state relative-caret-position="175">
+          <caret line="77" column="47" lean-forward="false" selection-start-line="77" selection-start-column="45" selection-end-line="77" selection-end-column="47" />
           <folding>
             <element signature="e#42#53#0" expanded="true" />
             <element signature="e#193#290#0" expanded="false" />
@@ -1006,6 +930,16 @@
             <element signature="e#797#801#0" expanded="false" />
             <element signature="e#851#855#0" expanded="false" />
             <element signature="e#899#969#0" expanded="false" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/main_18_1_12.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="1045">
+          <caret line="60" column="31" lean-forward="false" selection-start-line="60" selection-start-column="31" selection-end-line="60" selection-end-column="31" />
+          <folding>
+            <element signature="e#0#9#0" expanded="true" />
           </folding>
         </state>
       </provider>

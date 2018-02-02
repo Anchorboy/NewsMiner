@@ -1,0 +1,156 @@
+{
+    "_id" : "20180122012301129d48a6f54ce1bdfb85a8204f4c03",
+    "url" : "http://finance.ifeng.com/a/20180107/15913573_0.shtml",
+    "title" : "钱宝网引爆南京多个平台挤兑 小生优服人去楼空",
+    "content" : "凤凰网财经1月7日讯 据财新网报道称，钱宝网实际控制人投案自首一事件引发南京同类型集资平台相继挤兑，与钱宝网模式相似的小生优服人去楼空，不断有投资者赶赴南京站前派出所报案。此外还有国宾理财、蛙宝网等平台。小生优服所属企业名称是南京明我网络科技有限公司，总部位于南京，以模仿钱宝网模式并大胆创新在圈内出名，但是该公司存续时间较短，于2017年9月刚刚上线。钱宝网花式吸储：百分之六七十收益背后庞氏骗局钱宝网实际控制人张小雷。钱宝网坠落百分之六七十收益背后的庞氏骗局用户收益以钱宝币计算，现已无法提现；律师称案件涉及投资者众多，警方调查预计需要一两年我账户里还有2300多万钱宝币，都提不出来了，现在除了后悔也没有别",
+    "publishTime" : "2018-01-21 09:10:25",
+    "publisher" : "凤凰网",
+    "image" : "",
+    "video" : "",
+    "language" : "zh-CN",
+    "category" : "社会",
+    "crawlTime" : "2018-01-21 09:10:25",
+    "seggedTitle" : "钱/n 宝/n 网/n 引爆/v 南京/ns 多/m 个/q 平台/n 挤兑/vn   小生/n 优/ag 服/v 人去楼空/vl ",
+    "seggedContent" : [ 
+        "凤凰/ns 网/n 财经/n 1月/t 7日/t 讯/ng   据/p 财/n 新/a 网/n 报道/v 称/v ，/wd 钱/n 宝/n 网/n 实际/ad 控制/v 人/n 投案/vi 自首/vi 一/m 事件/n 引发/v 南京/ns 同/p 类型/n 集资/vn 平台/n 相继/d 挤兑/v ，/wd 与/p 钱/n 宝/n 网/n 模式/n 相似/a 的/ude1 小生/n 优/ag 服/v 人去楼空/vl ，/wd 不断/d 有/vyou 投资者/n 赶赴/v 南京/ns 站/vi 前/f 派出所/n 报案/vi 。/wj 此外/c 还有/v 国宾/n 理财/vi 、/wn 蛙/ng 宝/n 网/n 等/udeng 平台/n 。/wj 小生/n 优/ag 服/v 所属/n 企业/n 名称/n 是/vshi 南京/ns 明/vg 我/rr 网络/n 科技/n 有限公司/n ，/wd 总部/n 位于/v 南京/ns ，/wd 以/p 模仿/v 钱/n 宝/n 网/n 模式/n 并/cc 大胆/ad 创新/vi 在/p 圈/n 内/f 出名/a ，/wd 但是/c 该/rz 公司/n 存/v 续/v 时间/n 较/d 短/a ，/wd 于/p 2017年/t 9月/t 刚刚/d 上/vf 线/n 。/wj 钱/n 宝/n 网/n 花式/b 吸/v 储/ng ：/wp 百分之/m 六七十/m 收益/n 背后"
+    ],
+    "keywords" : [ 
+        {
+            "word" : "钱",
+            "score" : 1
+        }, 
+        {
+            "word" : "张小雷",
+            "score" : 1
+        }, 
+        {
+            "word" : "张小",
+            "score" : 0.9455185
+        }, 
+        {
+            "word" : "收益",
+            "score" : 0.20352592
+        }, 
+        {
+            "word" : "南京",
+            "score" : 1
+        }
+    ],
+    "persons" : [ 
+        {
+            "mention" : "张小雷",
+            "count" : 50,
+            "linkedURL" : "http://xxx.xx.com"
+        }, 
+        {
+            "mention" : "宝粉",
+            "count" : 6,
+            "linkedURL" : "http://xxx.xx.com"
+        }, 
+        {
+            "mention" : "黄希妍",
+            "count" : 4,
+            "linkedURL" : "http://xxx.xx.com"
+        }
+       
+    ],
+    "locations" : [ 
+        {
+            "count" : 14,
+            "linkedURL" : "http://xxx.xx.com",
+            "mention" : "南京",
+            "lng" : 118.77778,
+            "lat" : 32.06167
+        }, 
+        {
+            "count" : 5,
+            "linkedURL" : "http://xxx.xx.com",
+            "mention" : "江苏"
+        }, 
+        {
+            "count" : 4,
+            "linkedURL" : "http://xxx.xx.com",
+            "mention" : "天津"
+        }, 
+        {
+            "count" : 3,
+            "linkedURL" : "http://xxx.xx.com",
+            "mention" : "中国"
+        }, 
+        {
+            "count" : 3,
+            "linkedURL" : "http://xxx.xx.com",
+            "mention" : "上海"
+        }
+    ],
+    "organizations" : [ 
+        {
+            "mention" : "泛美",
+            "count" : 4,
+            "linkedURL" : "http://xxx.xx.com"
+        }, 
+        {
+            "mention" : "吉信",
+            "count" : 2,
+            "linkedURL" : "http://xxx.xx.com"
+        }, 
+        {
+            "mention" : "苏宁",
+            "count" : 1,
+            "linkedURL" : "http://xxx.xx.com"
+        }, 
+        {
+            "mention" : "中天",
+            "count" : 1,
+            "linkedURL" : "http://xxx.xx.com"
+        }
+    ],
+    "when" : [ 
+        {
+            "word" : "2018-01-21 00:00:00",
+            "score" : 1
+        }, 
+        {
+            "word" : "2018-01-21 17:00:00",
+            "score" : 0.9411764
+        }, 
+        {
+            "word" : "2018-01-21 17:30:30",
+            "score" : 0.9411764
+        }    
+       
+    ],
+    "where" : [ 
+        {
+            "word" : "南京",
+            "score" : 1
+        }
+    ],
+    "who" : [ 
+        {
+            "word" : "张小雷",
+            "score" : 1
+        }, 
+        {
+            "word" : "张小",
+            "score" : 0.9455185
+        }, 
+        {
+            "word" : "宝粉",
+            "score" : 0.28205934
+        }
+    ],
+    "newsID" : "20180122012301129d48a6f54ce1bdfb85a8204f4c03",
+    "replica" : [ 
+        {
+            "seggedContent" : [ 
+                "我/rr 账户/n 里/f 还有/v 2300/m 多/m 万/m 钱/n 宝/n 币/ng ，/wd 都/d 提/v 不/d 出来/vf 了/y ，/wd 现在/t 除了/p 后悔/v 也/d 没有/v 别的/rzv 办法/n 。/wj 2017年/t 的/ude1 最后/f 一个/mq 晚上/t ，/wd 钱/n 宝/n 网/n 投资者/n 刘/nr1 女士/n 这样/rzv 向/p 新/a 京/b 报/n 记者/n 诉苦/vi ，/wd 投资者/n 在/p 钱/n 宝/n 网上/s 的/ude1 收益/n 是/vshi 以/p 钱/n 宝/n 币/ng 形式/n 体现/v 的/ude1 ，/wd 100/m 钱/n 宝/n 币/ng 等于/v 1/m 元/q 钱/n 。/wj 自称/v 2亿/m 会员/n ，/wd 交易/vn 金额/n 超/h 500亿/m 元/q 的/ude1 钱/n 宝/n 网/n ，/wd 这/rzv 次/qv 老/a 套路/n 玩/v 不/d 下去/vf 了/y 。/wj 2017年/t 12月/t 29日/t ，/wd 南京/ns 警方/n 称/v ，/wd 钱/n 宝/n 网/n 实际/ad 控制/v 人/n 张小雷/nr 因/p 涉嫌/v 非法/b 集资/vn 犯罪/vn 已/d 被/pbei 采取/v 刑事/b 强制/vn 措施/n 。/wj 警方/n 吁请/v 各地/rzs 钱/n 宝/n 网/n 用户/n 到/v 本人/rr 户籍地/n 或/c 实际/a 居住地/n 公安/n 机关/n 经/p 侦/vg 部门/n 或/c 派出所/n 报案/vi ，/wd 配合/v 调查/v 取证/vi 。/wj 如今/t ，/wd 钱/n 宝/n  "
+            ],
+            "publishTime" : "2018-01-21 09:10:25",
+            "title" : "钱宝网花式吸储：收益率高达60%背后的庞氏骗局",
+            "_id" : "201801220136fa706b8b4b334eb7b0ada2a2aa14b35e",
+            "image" : "",
+            "publisher" : "凤凰网"
+        }
+    ]
+}

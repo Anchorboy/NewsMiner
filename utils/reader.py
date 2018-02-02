@@ -15,6 +15,12 @@ class Reader():
         timeStamp = float(time.mktime(timeArray))
         return timeStamp
 
+    def time_string2time(self, t_str):
+        return datetime.strptime(t_str, "%Y-%m-%d %H:%M:%S")
+
+    def time2time_string(self, t):
+        return t.strftime("%Y-%m-%d %H:%M:%S")
+
     def time_stamp2time(self, t):
         return str(datetime.fromtimestamp(t))
 
@@ -75,6 +81,8 @@ class NewsReader(Reader):
         :param end_time: 結束時間 (time.time() 現在運行時間)
         :return: result: 查詢結果
         """
+	start_time = start_time.replace("-", "").replace(" ", "").replace(":", "")
+	end_time = end_time.replace("-", "").replace(" ", "").replace(":", "")
         result = self.news_collection.find({"crawlTime": {"$gt": start_time, "$lt": end_time}})
         # for i in result:
         #     print i
@@ -144,7 +152,7 @@ class EventReader(Reader):
         return eid
 
     def close_events(self, t):
-        self.event_collection.update({"updated": {"$lt": t}, "closed":""}, {"$set":{"closed":t}}, upsert=False, multi=True)
+        self.event_collection.update({"updated": {"$lt": t}, "closed":False}, {"$set":{"closed":True}}, upsert=False, multi=True)
 
     def query_recent_events_by_time(self, t):
         """
@@ -152,10 +160,11 @@ class EventReader(Reader):
         :param t:
         :return:
         """
-        last_time = int(Reader.time2time_stamp(self, t) - self.day_diff * self.window)
-        last_time = Reader.time_stamp2time(self, last_time)
-        self.close_events(last_time)
-        return self.query_many_by_time(start_time=last_time, end_time=t)
+        last_time = self.time_string2time(t) + timedelta(days=-self.window)
+        last_time_t = self.time2time_string(last_time)
+        self.close_events(last_time_t)
+        print "read event from", last_time_t, " to ", t
+        return self.query_many_by_time(start_time=last_time_t, end_time=t)
 
     def query_many_by_time(self, start_time, end_time):
         """
@@ -164,7 +173,7 @@ class EventReader(Reader):
         :param end_time: 結束時間 (time.time() 現在運行時間)
         :return: result: 查詢結果
         """
-        result = self.event_collection.find({"updated": {"$gt": start_time, "$lt": end_time}, "closed": ""})
+        result = self.event_collection.find({"updated": {"$gt": start_time, "$lt": end_time}, "closed": False})
         # for i in result:
         #     print i
         return result

@@ -3,6 +3,7 @@ import sys
 reload(sys)
 sys.setdefaultencoding( "utf-8" )
 import os
+import json
 import numpy as np
 from scipy.spatial import distance
 from nltk.stem.porter import PorterStemmer
@@ -30,9 +31,13 @@ class Function():
                 assert (dim >= int(w[1]))
 
         self.stopwords = []
-        with open("utils\stopwords_en.txt", 'r') as f:
+        with open(os.path.join("utils", "stopwords_en.txt"), 'r') as f:
             for line in f:
                 self.stopwords.append(line.strip())
+
+        self.idf_table = {}
+        with open(os.path.join("utils", "idf.json"), "r") as f:
+            self.idf_table = json.load(f)
 
         self.porter_stemmer = PorterStemmer()
 
@@ -61,18 +66,20 @@ class Function():
         COS_STD = np.std(np.mean(distance.cdist(vecs, centroid_all, 'cosine'), axis=1))
         return COS, COS_STD
 
-    def vectorize_single_news(self, dim, news_dict):
-        id_matrix = np.eye(dim)
+    def vectorize_single_news(self, dim, news_str):
+        # id_matrix = np.eye(dim)
 
         # news_id = news_dict['_id']
-        news_stem = news_dict['stemContent'].split()
+        # news_stem = news_dict['stemmedTitle'] + ' ' + news_dict['stemmedContent']
+	news_stem = news_str.split()
         # news_lower = news_dict['lowerContent'].split()
 
         vector = np.zeros(dim)
         word_count = 0
         for word in news_stem:
-            if word in self.word_model:
-                vector += id_matrix[int(self.word_model[word])]
+            # if word in self.word_model:
+            if word in self.word_model and word in self.idf_table:
+                vector[int(self.word_model[word])] += self.idf_table[word]
                 word_count += 1
 
         if word_count != 0:
@@ -166,6 +173,12 @@ class Function():
         compress_content = ".".join([content_split[i] for i, j in sort_score[: int(n*r)+1]]) + "."
 
         return compress_content
+
+    def time_string2time(self, t_str):
+        return datetime.strptime(t_str, "%Y-%m-%d %H:%M:%S")
+
+    def time2time_string(self, t):
+        return t.strftime("%Y-%m-%d %H:%M:%S")
 
     def time2time_stamp(self, t):
         timeArray = time.strptime(t, "%Y-%m-%d %H:%M:%S")
